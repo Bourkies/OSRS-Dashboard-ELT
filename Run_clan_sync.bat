@@ -5,7 +5,7 @@ echo Running OSRS Clan Reporter...
 echo.
 
 REM Execute the python script located in the src folder
-python src/clan_sync.py
+python src/main.py
 
 echo.
 echo Script has finished.
