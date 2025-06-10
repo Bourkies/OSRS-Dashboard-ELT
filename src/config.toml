@@ -89,7 +89,8 @@ variants = [
 broadcast_type = "Pet"
 variants = [
     { regex = '''^(?:<:\w+:\d+>){0,2}\s*(.+?)\s+has a funny feeling.*?:\s+(.*?)\s+at\s+([\d,]+)\s+([\w\s]+)\.$''', columns = ["Username", "Pet_Name", "Pet_KC", "Pet_KC_Type"], required_columns = ["Username", "Pet_Name", "Pet_KC", "Pet_KC_Type"] },
-    { regex = '''^(?:<:\w+:\d+>){0,2}\s*(.+?)\s+feels something weird.*?:\s+(.*?)\s+at\s+([\d,]+)\s+([\w\s]+)\.$''', columns = ["Username", "Pet_Name", "Pet_KC", "Pet_KC_Type"], required_columns = ["Username", "Pet_Name", "Pet_KC", "Pet_KC_Type"] }
+    { regex = '''^(?:<:\w+:\d+>){0,2}\s*(.+?)\s+feels something weird.*?:\s+(.*?)\s+at\s+([\d,]+)\s+([\w\s]+)\.$''', columns = ["Username", "Pet_Name", "Pet_KC", "Pet_KC_Type"], required_columns = ["Username", "Pet_Name", "Pet_KC", "Pet_KC_Type"] },
+    { regex = '''^(?:<:\w+:\d+>){0,2}\s*(.+?)\s+has a funny feeling.*?:\s+(.*?)\s+at\s+([\d,]+)\s+([\w\s]+?)\s+\(.*$''', columns = ["Username", "Pet_Name", "Pet_KC", "Pet_KC_Type"], required_columns = ["Username", "Pet_Name", "Pet_KC", "Pet_KC_Type"] }
 ]
 
 [patterns.level_up]
