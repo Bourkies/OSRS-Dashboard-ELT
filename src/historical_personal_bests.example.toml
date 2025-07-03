@@ -1,0 +1,41 @@
+# ---------------------------------------------------------------------- #
+#    EXAMPLE HISTORICAL PERSONAL BESTS - RENAME TO .toml WHEN USING      #
+# ---------------------------------------------------------------------- #
+# This file is used to seed the PB report with records achieved
+# before the script was started.
+
+[settings]
+other_group_name = "Miscellaneous PBs"
+default_group_sort = "config"
+default_item_sort = "config"
+
+# --- Personal Best Blacklist ---
+# Use this to prevent users from holding records.
+# To blacklist a user from a specific task under a certain time:
+#   { username = "Player1", task_name = "Task Name", max_time = "1:23.45" }
+# To blacklist a user from ALL personal bests entirely:
+#   { username = "Player2" }
+blacklist = [
+    # { username = "KnownCheater" }
+]
+
+# --- Filtering Rules ---
+exclude_rules = [
+    ["Tombs of Amascut", "Challenge"],
+    ["Tombs of Amascut", "Entry mode"]
+]
+
+# --- Record Groups ---
+# Add your historical PBs here.
+[[groups]]
+title = "⏱️ Raid Speed Times ⏱️"
+records = [
+    { name = "Chambers of Xeric (Team Size: Solo)", time = "0:00", holder = "" },
+    { name = "Theatre of Blood (Team Size: 5)", time = "16:13", holder = ["PlayerA", "PlayerB"] }
+]
+
+[[groups]]
+title = "🥋 Cape & Minigame Speed Times 🥋"
+records = [
+    { name = "Inferno", time = "1:58:13", holder = "PlayerC" }
+]
