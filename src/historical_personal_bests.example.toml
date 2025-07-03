@@ -4,29 +4,44 @@
 # This file is used to seed the PB report with records achieved
 # before the script was started.
 
-[settings]
+# src/historical_personal_bests.toml
+# This file defines the structure, filtering, and starting records for the Personal Bests page.
+
+# --- Settings ---
+# Defines the name for the group that catches any records not listed in the groups below.
 other_group_name = "Miscellaneous PBs"
+# Default sorting for the dashboard. Options: "config", "alphabetical"
 default_group_sort = "config"
-default_item_sort = "config"
+default_item_sort = "config" # Or "config" to sort by the order below
 
 # --- Personal Best Blacklist ---
-# Use this to prevent users from holding records.
+# Use this to prevent certain users from holding records.
+# Rules are applied *after* username remapping from the main config has been completed.
+#
 # To blacklist a user from a specific task under a certain time:
-#   { username = "Player1", task_name = "Task Name", max_time = "1:23.45" }
+#   - username: The player's name.
+#   - task_name: The exact name of the task.
+#   - max_time: Any PB by the user for the task *under* this time will be ignored.
+#   - { username = "PayedForCoxTime", task_name = "Chambers of Xeric (Team Size: Solo)", max_time = "16:22.60" },
+#
 # To blacklist a user from ALL personal bests entirely:
-#   { username = "Player2" }
+#   - username: The player's name. (Omit task_name and max_time).
+#   - { username = "KnownCheater" }
+#
 blacklist = [
-    # { username = "KnownCheater" }
 ]
 
 # --- Filtering Rules ---
+# A record is excluded if its task name contains ALL strings within any single rule set.
 exclude_rules = [
     ["Tombs of Amascut", "Challenge"],
-    ["Tombs of Amascut", "Entry mode"]
+    ["Tombs of Amascut", "Entry mode"],
+    ["Theatre of Blood", "Entry mode"]
 ]
 
 # --- Record Groups ---
-# Add your historical PBs here.
+# Groups will be displayed on the dashboard in the order they appear here.
+# Records will be displayed in the order they appear if default_item_sort is "config".
 [[groups]]
 title = "⏱️ Raid Speed Times ⏱️"
 records = [
