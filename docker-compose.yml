@@ -1,0 +1,33 @@
+# docker-compose.yml
+# This file defines the services for the OSRS Dashboard project.
+# It should be located in the root directory of the project.
+
+version: '3.8'
+
+services:
+  # ETL Service: For running the data pipeline on a schedule
+  etl:
+    build:
+      context: ./OSRS-Dashboard-ETL  # Look for the Dockerfile in the ETL directory
+      dockerfile: Dockerfile
+    container_name: osrs-etl
+    # Mount volumes to persist data and logs, and to provide configurations.
+    # This ensures that your data and custom settings on the host machine are used
+    # by the container and are not affected by code updates.
+    volumes:
+      # --- Persisted Data & Logs ---
+      - ./OSRS-Dashboard-ETL/data:/app/data
+      - ./OSRS-Dashboard-ETL/logs:/app/logs
+      - ./OSRS-Dashboard-ETL/summaries:/app/summaries
+
+      # --- Configuration Files ---
+      # Mount your local, customized config files into the container.
+      # These files are ignored by Git.
+      - ./OSRS-Dashboard-ETL/src/secrets.toml:/app/src/secrets.toml:ro
+      - ./OSRS-Dashboard-ETL/src/config.toml:/app/src/config.toml:ro
+      - ./OSRS-Dashboard-ETL/src/historical_collection_logs.toml:/app/src/historical_collection_logs.toml:ro
+      - ./OSRS-Dashboard-ETL/src/historical_personal_bests.toml:/app/src/historical_personal_bests.toml:ro
+
+    # This service is intended to be run on-demand via a cron job, not kept running.
+    # Example cron command to run every 15 minutes:
+    # */15 * * * * cd /path/to/your/project && docker-compose run --rm etl
