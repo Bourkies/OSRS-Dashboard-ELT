@@ -3,6 +3,7 @@
 This project contains the ETL (Extract, Transform, Load) for a custom clan dashboard. It is designed to be run as a Docker container, fetching data from Discord, processing it with a highly configurable Python script, and preparing it for use in a dashboard.
 
 This pipeline is intended to be deployed on a server (like a Raspberry Pi) and run on a schedule (e.g., using a cron job).
+Please note AI has been extensively used in the creation of this project
 
 ## Features
 
