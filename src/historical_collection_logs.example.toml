@@ -4,10 +4,12 @@
 # This file is used to seed the collection log report with items obtained
 # before the script was started.
 
-[settings]
-other_group_name = "Miscellaneous"
+# --- Settings ---
+# Defines the name for the group that catches any items not listed in the groups below.
+other_group_name = "Miscellaneous anyone want to sort this out?....."
+# Default sorting for the dashboard. Options: "config", "alphabetical"
 default_group_sort = "config"
-default_item_sort = "config"
+default_item_sort = "config" # Sorts items by the order they appear below
 
 # --- Filtering Rules ---
 # An item is excluded if its name contains ALL strings within any single rule set.
@@ -16,8 +18,10 @@ exclude_rules = [
     ["monkfish"]
 ]
 
+
 # --- Item Groups ---
-# Add your historically obtained items here.
+# Groups will be displayed on the dashboard in the order they appear here.
+# Items will be displayed in the order they appear if default_item_sort is "config".
 [[groups]]
 title = "🏹 Chambers of Xeric 🏹"
 items = [
