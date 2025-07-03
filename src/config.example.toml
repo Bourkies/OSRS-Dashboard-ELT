@@ -4,71 +4,181 @@
 # This file contains the main configuration for the ETL pipeline.
 # Copy this file to "config.toml" and customize it for your environment.
 
+# src/config.toml
+
+#-----------------------------------------------------------------------
+# General Settings
+#-----------------------------------------------------------------------
 [general]
 project_name = "OSRS Discord Dashboard ELT"
 
+#-----------------------------------------------------------------------
+# ETL Runner Settings
+#-----------------------------------------------------------------------
 [etl_runner]
+# Set to false to skip the final step of loading data to the production database.
+# Useful for local testing of the transformation logic or when using local DB
 run_load_script = false
 
+#-----------------------------------------------------------------------
+# Log and Summary Cleanup Settings
+#-----------------------------------------------------------------------
 [cleanup_settings]
+# Number of days to keep log and summary files. Set to 0 to disable cleanup.
 log_retention_days = 3
 
+#-----------------------------------------------------------------------
+# Load Settings
+#-----------------------------------------------------------------------
 [load_settings]
+# This suffix is appended to table names during the loading phase of an online database.
 staging_suffix = "_staging"
 
-# --- Username Mapping ---
-# Combine multiple usernames into a single target username.
-# The rule that appears LATER in this list takes precedence in case of conflict.
-[username_mapping]
-rules = [
-  # { target_username = "CurrentName", source_usernames = ["OldName1", "OldName2"] },
-  # { target_username = "PlayerA", source_usernames = ["OldNameA"], end_date = "2025-03-01 00:00" },
-]
+#-----------------------------------------------------------------------
+# File Path Settings
+#-----------------------------------------------------------------------
+[historical_data]
+# Paths are relative to the 'src' directory
+collection_log_file = "historical_collection_logs.toml"
+personal_bests_file = "historical_personal_bests.toml"
 
-# --- Fetch & Parse Settings ---
+#-----------------------------------------------------------------------
+# fetch days Settings
+#-----------------------------------------------------------------------
 [time_settings]
+# Mode can be "automatic" or "custom".
 mode = "automatic"
+# In automatic mode, how many minutes before the current time should the script stop fetching?
 end_time_offset_minutes = 1
+# In automatic mode, how many extra minutes should the script go back from the last run?
 start_time_overlap_minutes = 10
+# On the very first automatic run, how many days back should the script fetch?
 max_lookback_days = 30
 
 [custom_time_range]
-custom_start_date = "2025-01-01 00:00"
-custom_end_date = "2025-12-31 23:59"
+# These values are ONLY used if mode is set to "custom".
+# Format: "YYYY-MM-DD HH:MM"
+custom_start_date = "2025-04-09 14:00"
+custom_end_date = "2025-08-09 16:00"
 
+#-----------------------------------------------------------------------
+# Username Mapping Settings
+#-----------------------------------------------------------------------
+# This section allows you to combine multiple usernames into a single target username.
+# This is useful for tracking players who have changed their names.
+# Each rule applies to a specific time range. You can have multiple rules for the same name
+# to handle name trading back and forth.
+#
+# - target_username: The final username to be displayed in reports.
+# - source_usernames: A list of old usernames to be mapped.
+# - start_date / end_date: Optional. Format "YYYY-MM-DD HH:MM".
+#   - Time is in UTC
+#   - If only start_date is given, it applies from that date onwards.
+#   - If only end_date is given, it applies until that date.
+#   - If both are given, it applies within that specific range.
+#   - If neither is given, it applies to all time.
+#   - If name mapping rules overlap the rule appearing last takes precedence.
+
+[username_mapping]
+rules = [
+  # Example 1: "bee" and "mark" are always mapped to "Mace".
+  # { target_username = "Mace", source_usernames = ["bee", "mark"] },
+
+  # Example 2: "PlayerA" was known as "OldNameA" before 2025-03-01.
+  # { target_username = "PlayerA", source_usernames = ["OldNameA"], end_date = "2025-03-01 00:00" },
+
+  # Example 3: "PlayerB" was known as "OldNameB" starting from 2025-05-15.
+  # { target_username = "PlayerB", source_usernames = ["OldNameB"], start_date = "2025-05-15 00:00" },
+
+  # Example 4: A specific name change for a limited time.
+  # { target_username = "TempUser", source_usernames = ["MainUser"], start_date = "2025-06-01 00:00", end_date = "2025-06-15 00:00" }
+
+  # Rule start
+]
+
+
+#-----------------------------------------------------------------------
+# Item Value Overrides
+#-----------------------------------------------------------------------
+# Used in the transform step (3_transform_data.py) to assign a value
+# to items that are parsed without one, such as from "Raid Loot" broadcasts.
+# The key is the exact item name, and the value is the integer price.
+# Underscores can be used in numbers for readability.
+[item_value_overrides]
+# Updated 2025 07 02
+# CoX
+"Dexterous prayer scroll" = 16_000_000
+"Arcane prayer scroll" = 3_230_000
+"Twisted buckler" = 15_500_000
+"Dragon hunter crossbow" = 43_260_000
+"Dinh's bulwark" = 13_570_000
+"Ancestral hat" = 68_038_000
+"Ancestral robe top" = 173_830_000
+"Ancestral robe bottom" = 133_610_000
+"Dragon claws" = 60_940_000
+"Elder maul" = 125_870_000
+"Kodai insignia" = 99_070_000
+"Twisted bow" = 1_486_480_000
+
+# ToB
+"Avernic defender hilt" = 46_990_000
+"Ghrazi rapier" = 36_510_000
+"Sanguinesti staff (uncharged)" = 53_500_000
+"Justiciar faceguard" = 10_320_000
+"Justiciar chestguard" = 11_460_000
+"Justiciar legguards" = 8_610_000
+"Scythe of vitur (uncharged)" = 1_642_470_000
+
+# ToA
+"Osmumten's fang" = 21_670_000
+"Lightbearer" = 4_970_000
+"Elidinis' ward" = 3_620_000
+"Masori mask" = 5_090_000
+"Masori body" = 34_740_000
+"Masori chaps" = 25_080_000
+"Tumeken's shadow (uncharged)" = 1_031_620_000
+
+#-----------------------------------------------------------------------
+# Parse settings
+#-----------------------------------------------------------------------
 [parse_settings]
+# "new" - Parses only new raw logs and re-attempts previously unparsed ones. (Faster, for daily runs)
+# "all" - Clears all parsed tables and re-parses everything from scratch. (Slower, for when regex is updated)
 mode = "new"
 
-# --- Item Value Overrides ---
-# Assign a value to items that are parsed without one (e.g., from Raid Loot broadcasts).
-[item_value_overrides]
-"Dexterous prayer scroll" = 16000000
-"Twisted bow" = 1480000000
-"an extraordinary amount of loot" = 2147483647
+# parse definitions located further down
 
-# --- Dashboard & Report Generation Settings ---
+#-----------------------------------------------------------------------
+# Transform Setttings
+#-----------------------------------------------------------------------
 [dashboard_settings]
 week_start_day = "Monday"
 custom_lookback_days = 14
-top_drops_limit = 50
+other_group_name = "Miscellaneous"
+top_drops_limit = 50 
 
 [dashboard_settings.collection_log]
 source_types = ["Collection Log", "Valuable Drop", "Raid Loot", "Clue Scroll Item"]
 deduplication_type = "Collection Log"
+other_group_name = "Miscellaneous"
 
 [dashboard_settings.personal_bests]
 broadcast_type = "Personal Best"
+report_name = "personal_bests_summary"
+# How close in seconds two times must be to be considered identical (e.g., 0.6 for 59.4s and 1:00.0)
 pb_time_similarity_threshold_seconds = 0.6
+# How close in time (seconds) two identical PBs must be to be grouped as a single record.
 pb_grouping_window_seconds = 15
+# If true, all players who match the best time will be listed as holders.
+# If false, only the first player/group to achieve the time will hold the record.
 allow_multiple_holders_on_match = false
 
 [dashboard_settings.recent_achievements]
 source_types = ["Level Up", "Quest", "Diary", "Combat Task", "Combat Achievement Tier", "Pet"]
 limit = 15
 
-# Define your leaderboard, detailed, and timeseries reports below.
-# The default structure is provided.
-
+# --- Generic Leaderboard Reports ---
+# Used for creating summary tables with counts and values per player.
 [[dashboard_settings.leaderboard_reports]]
 report_name = "valuable_drops_summary"
 source_table = "clan_broadcasts"
@@ -77,34 +187,117 @@ group_by_column = "Username"
 aggregations.Count = "Username"
 aggregations.Value = "Item_Value"
 
+[[dashboard_settings.leaderboard_reports]]
+report_name = "pvp_kills_summary"
+source_table = "clan_broadcasts"
+broadcast_type = "PvP Kill"
+group_by_column = "Username"
+aggregations.Count = "Username"
+aggregations.Value = "Item_Value"
+
+[[dashboard_settings.leaderboard_reports]]
+report_name = "pvp_deaths_summary"
+source_table = "clan_broadcasts"
+broadcast_type = "PvP Death"
+group_by_column = "Username"
+aggregations.Count = "Username"
+aggregations.Value = "Item_Value"
+
+[[dashboard_settings.leaderboard_reports]]
+report_name = "kicked_by_player_summary"
+source_table = "clan_broadcasts"
+broadcast_type = "Clan Expelled"
+group_by_column = "Username"
+aggregations.Count = "Username"
+
+[[dashboard_settings.leaderboard_reports]]
+report_name = "kicker_summary"
+source_table = "clan_broadcasts"
+broadcast_type = "Clan Expelled"
+group_by_column = "Action_By"
+aggregations.Count = "Action_By"
+
+[[dashboard_settings.leaderboard_reports]]
+report_name = "stolen_whips_summary"
+source_table = "clan_broadcasts"
+broadcast_type = "Valuable Drop"
+item_name_filter = "Abyssal whip"
+group_by_column = "Username"
+aggregations.Count = "Username"
+aggregations.Value = "Item_Value"
+
+[[dashboard_settings.leaderboard_reports]]
+report_name = "big_gzers_summary"
+source_table = "chat"
+search_phrases = ["gz", "grats", "gratz"]
+group_by_column = "Username"
+aggregations.Count = "Content"
+
+
+# --- Detailed History Reports ---
+# Used for creating tables of individual events for each time period.
 [[dashboard_settings.detailed_reports]]
 report_name_prefix = "valuable_drops_detail"
 broadcast_types = ["Valuable Drop", "Clue Scroll Item", "Raid Loot"]
 
+[[dashboard_settings.detailed_reports]]
+report_name_prefix = "pvp_kills_detail"
+broadcast_types = ["PvP Kill"]
+
+[[dashboard_settings.detailed_reports]]
+report_name_prefix = "pvp_deaths_detail"
+broadcast_types = ["PvP Death"]
+
+
+# --- Timeseries Reports ---
+# Used for generating data for the line/area charts.
 [[dashboard_settings.timeseries_reports]]
 report_name = "valuable_drops_timeseries"
 broadcast_type = "Valuable Drop"
 frequencies = ["6h", "D", "W"]
 
+[[dashboard_settings.timeseries_reports]]
+report_name = "pvp_kills_timeseries"
+broadcast_type = "PvP Kill"
+frequencies = ["6h", "D", "W"]
 
-# --- Database & Parsing Definitions ---
-# It is recommended not to change these unless you have a deep understanding of the script.
+[[dashboard_settings.timeseries_reports]]
+report_name = "pvp_deaths_timeseries"
+broadcast_type = "PvP Death"
+frequencies = ["6h", "D", "W"]
+
+#-----------------------------------------------------------------------
+# Database Locations
+#-----------------------------------------------------------------------
 [databases]
+# These paths are relative to the project root directory
 raw_db_uri = "sqlite:///data/raw_data.db"
 parsed_db_uri = "sqlite:///data/parsed_data.db"
 optimised_db_uri = "sqlite:///data/optimised_data.db"
 
+#-----------------------------------------------------------------------
+# Database Schema Definition
+#-----------------------------------------------------------------------
+
 [database_schema]
+# Added 'raw_log_id' to link back to the original message.
 clan_broadcasts = { raw_log_id = "INTEGER", Timestamp = "TEXT", Content = "TEXT", Username = "TEXT", Broadcast_Type = "TEXT", Item_Name = "TEXT", Item_Value = "BIGINT", Collection_Log_Progress = "TEXT", Skill = "TEXT", Task_Name = "TEXT", New_Level = "INTEGER", Tier = "TEXT", PB_Time = "TEXT", Source_Mob = "TEXT", Opponent = "TEXT", Pet_Name = "TEXT", Pet_KC = "INTEGER", Pet_KC_Type = "TEXT", Action_By = "TEXT", New_Group_Lives = "TEXT" }
 chat = { raw_log_id = "INTEGER", Timestamp = "TEXT", MessageType = "TEXT", Rank = "TEXT", Status = "TEXT", Username = "TEXT", Content = "TEXT" }
 unparsed_logs = { raw_log_id = "INTEGER", timestamp = "TEXT", raw_content = "TEXT", failure_reason = "TEXT" }
 
+#-----------------------------------------------------------------------
+# Message Parsing Patterns
+#-----------------------------------------------------------------------
 [patterns]
-# All regex patterns follow...
+
+# --- Clan Chat PATTERN GROUPS ---
+
 [patterns.Chat]
 type = "chat"
 regex = '''^<:(\w+):\d+>(?:<:(\w+):\d+>)?\s*\*\*(.*?)\*\*:\s*(.*)'''
 columns = ["Rank", "Status", "Username", "Content"]
+
+# --- BROADCAST PATTERN GROUPS ---
 
 [patterns.valuable_drop]
 broadcast_type = "Valuable Drop"
@@ -112,4 +305,133 @@ variants = [
     { regex = '''^(?:<:\w+:\d+>){0,2}\s*(.+?)\s+received a drop: (.*?)\s+\((\d{1,3}(?:,\d{3})*|\d+) coins\) from (.*?)\.?$''', columns = ["Username", "Item_Name", "Item_Value", "Source_Mob"], required_columns = ["Username", "Item_Name", "Item_Value", "Source_Mob"] },
     { regex = '''^(?:<:\w+:\d+>){0,2}\s*(.+?)\s+received a drop: (.*?)\s+\((\d{1,3}(?:,\d{3})*|\d+) coins\)\.?$''', columns = ["Username", "Item_Name", "Item_Value"], required_columns = ["Username", "Item_Name", "Item_Value"] },
     { regex = '''^(.+?)\s+received a rare drop: (.*)$''', columns = ["Username", "Item_Name"], required_columns = ["Username", "Item_Name"] }
+]
+
+[patterns.clue_scroll]
+broadcast_type = "Clue Scroll Item"
+variants = [
+    { regex = '''^(?:<:\w+:\d+>){0,2}\s*(.+?)\s+received a clue item: (.*?)\s+\((\d{1,3}(?:,\d{3})*|\d+) coins\)\.?$''', columns = ["Username", "Item_Name", "Item_Value"], required_columns = ["Username", "Item_Name", "Item_Value"] }
+]
+
+[patterns.collection_log]
+broadcast_type = "Collection Log"
+variants = [
+    { regex = '''^(?:<:\w+:\d+>){0,2}\s*(.+?)\s+received a new collection log item: (.*?)\s+\((\d+/\d+)\)$''', columns = ["Username", "Item_Name", "Collection_Log_Progress"], required_columns = ["Username", "Item_Name", "Collection_Log_Progress"] }
+]
+
+[patterns.raid_loot]
+broadcast_type = "Raid Loot"
+variants = [
+    { regex = '''^(?:<:\w+:\d+>){0,2}\s*(.+?)\s+received special loot from a raid: (.*?)\.?$''', columns = ["Username", "Item_Name"], required_columns = ["Username", "Item_Name"] }
+]
+
+[patterns.pet]
+broadcast_type = "Pet"
+variants = [
+    { regex = '''^(?:<:\w+:\d+>){0,2}\s*(.+?)\s+has a funny feeling.*?:\s+(.*?)\s+at\s+([\d,]+)\s+([\w\s]+)\.$''', columns = ["Username", "Pet_Name", "Pet_KC", "Pet_KC_Type"], required_columns = ["Username", "Pet_Name", "Pet_KC", "Pet_KC_Type"] },
+    { regex = '''^(?:<:\w+:\d+>){0,2}\s*(.+?)\s+feels something weird.*?:\s+(.*?)\s+at\s+([\d,]+)\s+([\w\s]+)\.$''', columns = ["Username", "Pet_Name", "Pet_KC", "Pet_KC_Type"], required_columns = ["Username", "Pet_Name", "Pet_KC", "Pet_KC_Type"] },
+	{ regex = '''^(?:<:\w+:\d+>){0,2}\s*(.+?)\s+has a funny feeling.*?:\s+(.*?)\s+at\s+([\d,]+)\s+([\w\s]+?)\s+\(.*$''', columns = ["Username", "Pet_Name", "Pet_KC", "Pet_KC_Type"], required_columns = ["Username", "Pet_Name", "Pet_KC", "Pet_KC_Type"] },
+    { regex = '''^(?:<:\w+:\d+>){0,2}\s*(.+?)\s+feels like (?:.*?) acquired something special:\s*(.+)$''', columns = ["Username", "Pet_Name"], required_columns = ["Username", "Pet_Name"] },
+    { regex = '''^(?:<:\w+:\d+>){0,2}\s*(.+?)\s+has a funny feeling like \S+ being followed:\s+(.*?)\.?$''', columns = ["Username", "Pet_Name"], required_columns = ["Username", "Pet_Name"] }
+]
+
+[patterns.level_up]
+broadcast_type = "Level Up"
+variants = [
+    { regex = '''^(?:<:\w+:\d+>){0,2}\s*(.+?)\s+has reached ([\w\s]+) level (\d+)\.?$''', columns = ["Username", "Skill", "New_Level"], required_columns = ["Username", "Skill", "New_Level"] },
+    { regex = '''^(?:<:\w+:\d+>){0,2}\s*(.+?)\s+has reached the highest possible (combat) level of (\d+)!$''', columns = ["Username", "Skill", "New_Level"], required_columns = ["Username", "Skill", "New_Level"] }
+]
+
+[patterns.total_level]
+broadcast_type = "Total Level"
+variants = [
+    { regex = '''^(?:<:\w+:\d+>){0,2}\s*(.+?)\s+has reached a total level of (\d+)\.?$''', columns = ["Username", "New_Level"], required_columns = ["Username", "New_Level"] }
+]
+
+[patterns.xp_milestone]
+broadcast_type = "XP Milestone"
+variants = [
+    { regex = '''^(?:<:\w+:\d+>){0,2}\s*(.+?)\s+has reached ([\d,]+) XP in ([\w\s]+)\.?$''', columns = ["Username", "New_Level", "Skill"], required_columns = ["Username", "New_Level", "Skill"] }
+]
+
+[patterns.quest]
+broadcast_type = "Quest"
+variants = [
+    { regex = '''^(?:<:\w+:\d+>){0,2}\s*(.+?)\s+has completed a quest: (.*?)\.?$''', columns = ["Username", "Task_Name"], required_columns = ["Username", "Task_Name"] }
+]
+
+[patterns.diary]
+broadcast_type = "Diary"
+variants = [
+    { regex = '''^(?:<:\w+:\d+>){0,2}\s*(.+?)\s+has completed the (.*?) (.*?) diary\.$''', columns = ["Username", "Tier", "Task_Name"], required_columns = ["Username", "Tier", "Task_Name"] }
+]
+
+[patterns.combat_task]
+broadcast_type = "Combat Task"
+variants = [
+    { regex = '''^(?:<:\w+:\d+>){0,2}\s*(.+?)\s+has completed (?:a|an) (.*?) combat task: (.*?)\.?$''', columns = ["Username", "Tier", "Task_Name"], required_columns = ["Username", "Tier", "Task_Name"] }
+]
+
+[patterns.personal_best]
+broadcast_type = "Personal Best"
+variants = [
+    { regex = '''^(?:<:\w+:\d+>){0,2}\s*(.+?)\s+has achieved a new (.*?) personal best:\s+([\d:.]+)$''', columns = ["Username", "Task_Name", "PB_Time"], required_columns = ["Username", "Task_Name", "PB_Time"] }
+]
+
+[patterns.pvp_kill]
+broadcast_type = "PvP Kill"
+variants = [
+    { regex = '''^(?:<:\w+:\d+>){0,2}\s*(.+?)\s+has defeated (.*?) and received \((\d{1,3}(?:,\d{3})*|\d+) coins\) worth of loot!(.*)$''', columns = ["Username", "Opponent", "Item_Value", "_"], required_columns = ["Username", "Opponent", "Item_Value"] },
+    { regex = '''^(?:<:\w+:\d+>){0,2}\s*(.+?)\s+has defeated (.*?), causing (.*?) to lose \((\d{1,3}(?:,\d{3})*|\d+) coins\) worth of loot!(.*)$''', columns = ["Username", "Opponent", "_", "Item_Value", "_"], required_columns = ["Username", "Opponent", "Item_Value"] },
+]
+
+[patterns.pvp_death]
+broadcast_type = "PvP Death"
+variants = [
+    { regex = '''^(?:<:\w+:\d+>){0,2}\s*(.+?)\s+has been defeated by (.*?) in The Wilderness and lost \((\d{1,3}(?:,\d{3})*|\d+) coins\) worth of loot(.*)$''', columns = ["Username", "Opponent", "Item_Value", "_"], required_columns = ["Username", "Opponent", "Item_Value"] },
+    { regex = '''^(?:<:\w+:\d+>){0,2}\s*(.+?)\s+has been defeated by (.*?) in The Wilderness(.*)$''', columns = ["Username", "Opponent", "_"], required_columns = ["Username", "Opponent"] },
+    { regex = '''^(?:<:\w+:\d+>){0,2}\s*(.+?)\s+has been defeated by (.*?) and lost \((\d{1,3}(?:,\d{3})*|\d+) coins\) worth of loot\.$''', columns = ["Username", "Opponent", "Item_Value"], required_columns = ["Username", "Opponent", "Item_Value"] },
+    { regex = '''^(?:<:\w+:\d+>){0,2}\s*(.+?)\s+has been defeated by (.*?) and lost (an extraordinary amount of loot)\.$''', columns = ["Username", "Opponent", "Item_Name"], required_columns = ["Username", "Opponent", "Item_Name"] },
+]
+
+[patterns.combat_achievement_tier]
+broadcast_type = "Combat Achievement Tier"
+variants = [
+    { regex = '''^(?:<:\w+:\d+>){0,2}\s*(.+?)\s+has unlocked the (.*?) tier of rewards from Combat Achievements!$''', columns = ["Username", "Tier"], required_columns = ["Username", "Tier"] }
+]
+
+[patterns.clan_invite]
+broadcast_type = "Clan Invite"
+variants = [
+    { regex = '''^(?:<:\w+:\d+>){0,2}\s*(.+?)\s+has been invited into the clan by (.*?)\.?$''', columns = ["Username", "Action_By"], required_columns = ["Username", "Action_By"] }
+]
+
+[patterns.clan_expelled]
+broadcast_type = "Clan Expelled"
+variants = [
+    { regex = '''^(.+?)\s+has expelled (.+?) from the clan\.?$''', columns = ["Action_By", "Username"], required_columns = ["Action_By", "Username"] }
+]
+
+[patterns.clan_left]
+broadcast_type = "Clan Left"
+variants = [
+    { regex = '''^(.+?)\s+has left the clan\.?$''', columns = ["Username"], required_columns = ["Username"] }
+]
+
+[patterns.hcgim_life_lost]
+broadcast_type = "HCGIM Life Lost"
+variants = [
+    { regex = '''^(.+?)\s+has died and lost a life\. (.*?) group has .*?(\d+/\d+) lives left\.$''', columns = ["Username", "_", "New_Group_Lives"], required_columns = ["Username", "New_Group_Lives"] }
+]
+
+[patterns.clan_coffer_deposit]
+broadcast_type = "Clan Coffer Deposit"
+variants = [
+    { regex = '''^(.+?)\s+has deposited ([\d,]+) coins into the coffer\.$''', columns = ["Username", "Item_Value"], required_columns = ["Username", "Item_Value"] }
+]
+
+[patterns.clan_coffer_withdraw]
+broadcast_type = "Clan Coffer Withdraw"
+variants = [
+    { regex = '''^(.+?)\s+has withdrawn ([\d,]+) coins from the coffer\.$''', columns = ["Username", "Item_Value"], required_columns = ["Username", "Item_Value"] }
 ]
