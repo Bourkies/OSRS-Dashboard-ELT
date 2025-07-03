@@ -1,33 +1,21 @@
-# Python
+# Python cache
 __pycache__/
 *.pyc
-*.pyo
-*.pyd
-.Python
-env/
-venv/
-pip-log.txt
-pip-delete-this-directory.txt
 
-# Database and Data files
+# User-generated data, logs, and summaries
+# These directories will be managed by Docker volumes and should not be in Git
 data/
-*.db
-*.sqlite3
-sync_state.json
-
-# Reports and Logs
-reports/
 logs/
-*.log
+summaries/
 
-# Secrets file
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# --- Configuration Files ---
+# Ignore the actual config and secrets files.
+# The *.example.toml files should be committed to the repository.
 src/secrets.toml
-
-# Regex Test utility files
-src/regex_test/raw_message_dump.txt
-src/regex_test/regex_test_failures.log
-
-# IDE and OS specific
-.idea/
-.vscode/
-*.DS_Store
+src/config.toml
+src/historical_collection_logs.toml
+src/historical_personal_bests.toml
