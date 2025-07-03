@@ -1,0 +1,6 @@
+pandas
+sqlalchemy
+discord.py
+requests
+tomli
+psycopg2-binary
