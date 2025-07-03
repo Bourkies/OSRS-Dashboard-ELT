@@ -1,7 +1,0 @@
-discord.py
-pandas
-SQLAlchemy
-streamlit
-altair
-toml
-psycopg2-binary
