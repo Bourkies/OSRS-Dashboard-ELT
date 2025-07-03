@@ -1,0 +1,32 @@
+# ---------------------------------------------------------------------- #
+#    EXAMPLE HISTORICAL COLLECTION LOG - RENAME TO .toml WHEN USING      #
+# ---------------------------------------------------------------------- #
+# This file is used to seed the collection log report with items obtained
+# before the script was started.
+
+[settings]
+other_group_name = "Miscellaneous"
+default_group_sort = "config"
+default_item_sort = "config"
+
+# --- Filtering Rules ---
+# An item is excluded if its name contains ALL strings within any single rule set.
+exclude_rules = [
+    ["Onyx bolt"],
+    ["monkfish"]
+]
+
+# --- Item Groups ---
+# Add your historically obtained items here.
+[[groups]]
+title = "🏹 Chambers of Xeric 🏹"
+items = [
+    { name = "Twisted bow", count = 1 },
+    { name = "Kodai insignia", count = 1 }
+]
+
+[[groups]]
+title = "🧛 Theatre of Blood 🧛"
+items = [
+    { name = "Scythe of vitur (uncharged)", count = 1 }
+]
