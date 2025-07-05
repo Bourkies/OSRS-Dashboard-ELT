@@ -6,6 +6,7 @@ except ImportError:
     import tomli as tomllib
 import os
 import json
+import re
 from sqlalchemy import inspect
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -69,8 +70,9 @@ def create_metadata_tables(engine, config, periods):
     clog_historical_file = SRC_ROOT / config.get('historical_data', {}).get('collection_log_file')
     with open(clog_historical_file, "rb") as f:
         clog_hist_data = tomllib.load(f)
-    clog_settings = clog_hist_data.get('settings', {})
-    clog_item_orders = {g.get('title'): [i.get('name') for i in g.get('items', [])] for g in clog_hist_data.get('groups', [])}
+    
+    clog_group_order = [g.get('title') for g in clog_hist_data.get('groups', [])]
+    clog_item_orders = {g.get('title'): g.get('items', []) for g in clog_hist_data.get('groups', [])}
 
     df_config = pd.DataFrame([
         {'key': 'custom_lookback_days', 'value': str(config['dashboard_settings'].get('custom_lookback_days', 14))},
@@ -86,10 +88,11 @@ def create_metadata_tables(engine, config, periods):
         {'key': 'pb_group_order', 'value': json.dumps(list(pb_item_orders.keys()))},
         {'key': 'pb_item_orders', 'value': json.dumps(pb_item_orders)},
 
-        {'key': 'clog_other_group_name', 'value': clog_settings.get('other_group_name', 'Miscellaneous Drops')},
-        {'key': 'clog_default_group_sort', 'value': clog_settings.get('default_group_sort', 'config')},
-        {'key': 'clog_default_item_sort', 'value': clog_settings.get('default_item_sort', 'alphabetical')},
-        {'key': 'clog_group_order', 'value': json.dumps(list(clog_item_orders.keys()))},
+        # --- FIX: Read settings from the top level of the TOML data ---
+        {'key': 'clog_other_group_name', 'value': clog_hist_data.get('other_group_name', 'Miscellaneous Drops')},
+        {'key': 'clog_default_group_sort', 'value': clog_hist_data.get('default_group_sort', 'config')},
+        {'key': 'clog_default_item_sort', 'value': clog_hist_data.get('default_item_sort', 'alphabetical')},
+        {'key': 'clog_group_order', 'value': json.dumps(clog_group_order)},
         {'key': 'clog_item_orders', 'value': json.dumps(clog_item_orders)},
     ])
     df_config.to_sql('dashboard_config', engine, if_exists='replace', index=False)
@@ -100,12 +103,10 @@ def create_metadata_tables(engine, config, periods):
 def validate_mapping_rules(rules):
     """Checks for overlapping time ranges for the same source username and logs a warning."""
     logging.info("Validating username mapping rules for conflicts...")
-    # Helper to parse dates with defaults for infinity
     def parse_date(date_str, default):
         if not date_str: return default
         return pd.to_datetime(date_str, errors='coerce', utc=True)
 
-    # Pre-process rules to have consistent datetime objects
     processed_rules = []
     for i, rule in enumerate(rules):
         start = parse_date(rule.get('start_date'), pd.Timestamp.min.replace(tzinfo=timezone.utc))
@@ -120,14 +121,11 @@ def validate_mapping_rules(rules):
             'rule_index': i + 1
         })
 
-    # Check for conflicts
     for (r1, r2) in itertools.combinations(processed_rules, 2):
-        # Check if any source usernames are shared between the two rules
         common_sources = r1['sources'].intersection(r2['sources'])
         if not common_sources:
             continue
 
-        # Check for time overlap: (StartA < EndB) and (StartB < EndA)
         if r1['start'] < r2['end'] and r2['start'] < r1['end']:
             logging.warning(
                 f"Conflict detected in username mapping! "
@@ -143,31 +141,26 @@ def apply_username_mapping(df, rules, username_columns):
         return df
 
     df_copy = df.copy()
+    df_copy['Timestamp'] = pd.to_datetime(df_copy['Timestamp'], errors='coerce', utc=True)
     
-    # Iterate in reverse to ensure later rules in the config file take precedence
     for i, rule in reversed(list(enumerate(rules))):
         target_name = rule.get('target_username')
         source_names = rule.get('source_usernames', [])
         if not target_name or not source_names:
             continue
 
-        # Parse dates, defaulting to min/max if not provided
         start_date = pd.to_datetime(rule.get('start_date'), errors='coerce', utc=True)
         end_date = pd.to_datetime(rule.get('end_date'), errors='coerce', utc=True)
 
-        # Create a boolean mask for the time period
         time_mask = pd.Series(True, index=df_copy.index)
         if pd.notna(start_date):
             time_mask &= (df_copy['Timestamp'] >= start_date)
         if pd.notna(end_date):
             time_mask &= (df_copy['Timestamp'] < end_date)
 
-        # Apply the mapping to all relevant username columns
         for col in username_columns:
             if col in df_copy.columns:
-                # Create a boolean mask for the source usernames in the current column
                 name_mask = df_copy[col].isin(source_names)
-                # Combine masks and apply the change
                 combined_mask = time_mask & name_mask
                 if combined_mask.any():
                     df_copy.loc[combined_mask, col] = target_name
@@ -331,7 +324,10 @@ def generate_timeseries_reports(df_source, config):
     return reports
 
 def generate_collection_log_report(df_broadcasts, config, periods):
-    """Generates the collection log summary by combining historical and new data."""
+    """
+    Generates the collection log summary. An item can appear in multiple groups,
+    and item names with quantities (e.g., '72 x Onyx bolts') are parsed.
+    """
     logging.info("Generating collection log report...")
     clog_config = config.get('dashboard_settings', {}).get('collection_log', {})
     
@@ -343,19 +339,12 @@ def generate_collection_log_report(df_broadcasts, config, periods):
     with open(historical_file, "rb") as f:
         hist_data = tomllib.load(f)
         
+    # --- FIX: Read settings from the top level of the TOML data ---
     exclude_rules = hist_data.get('exclude_rules', [])
-    other_group_name = hist_data.get('settings', {}).get('other_group_name', 'Miscellaneous Drops')
-    
-    item_to_group_map = {}
-    historical_counts = {}
-    for group in hist_data.get('groups', []):
-        group_title = group.get('title')
-        for item in group.get('items', []):
-            item_name = item.get('name')
-            if item_name:
-                item_to_group_map[item_name] = group_title
-                historical_counts[item_name] = item.get('count', 0)
+    other_group_name = hist_data.get('other_group_name', 'Miscellaneous Drops')
+    historical_counts = {item['name']: item['count'] for item in hist_data.get('initial_counts', [])}
 
+    # 1. Filter and process broadcast data
     source_types = clog_config.get('source_types', [])
     df_clog_source = df_broadcasts[df_broadcasts['Broadcast_Type'].isin(source_types)].copy()
     
@@ -363,7 +352,8 @@ def generate_collection_log_report(df_broadcasts, config, periods):
         flat_exclude_list = [item for sublist in exclude_rules for item in sublist]
         logging.info(f"Applying {len(flat_exclude_list)} exclusion rules to collection log items...")
         initial_rows = len(df_clog_source)
-        df_clog_source = df_clog_source[~df_clog_source['Item_Name'].isin(flat_exclude_list)]
+        exclude_mask = df_clog_source['Item_Name'].isin(flat_exclude_list)
+        df_clog_source = df_clog_source[~exclude_mask]
         logging.info(f"--> Excluded {initial_rows - len(df_clog_source)} CLog items.")
 
     dedup_type = clog_config.get('deduplication_type')
@@ -375,29 +365,87 @@ def generate_collection_log_report(df_broadcasts, config, periods):
         df_clog_source = pd.concat([df_deduped, df_others])
         logging.info(f"Deduplicated {len(df_to_dedup) - len(df_deduped)} rows for broadcast type '{dedup_type}'.")
 
-    all_db_items = df_clog_source['Item_Name'].dropna().unique()
+    # 2. Parse item name and quantity
+    def parse_item_and_quantity(item_name_str):
+        if not isinstance(item_name_str, str):
+            return ('', 1)
+        
+														   
+        match = re.match(r"([\d,]+)\s*x\s*(.+)", item_name_str.strip())
+        if match:
+													
+            quantity = int(match.group(1).replace(',', ''))
+            name = match.group(2).strip()
+            return (name, quantity)
+        else:
+            return (item_name_str.strip(), 1)
+
+    if not df_clog_source.empty:
+        parsed_data = df_clog_source['Item_Name'].apply(parse_item_and_quantity)
+        df_clog_source[['Parsed_Item_Name', 'Item_Quantity']] = pd.DataFrame(parsed_data.tolist(), index=df_clog_source.index)
+    else:
+        df_clog_source['Parsed_Item_Name'] = None
+        df_clog_source['Item_Quantity'] = 1
+
+    # 3. Calculate total counts for every unique item across all periods
+    all_db_items = df_clog_source['Parsed_Item_Name'].dropna().unique()
     all_known_items = sorted(list(set(all_db_items) | set(historical_counts.keys())))
     
-    df_summary = pd.DataFrame({'Item_Name': all_known_items})
+    df_item_counts = pd.DataFrame({'Item_Name': all_known_items})
     
     for period_key, dates in periods.items():
         df_period = get_records_for_period(df_clog_source, start_date=dates['start'], end_date=dates['end'])
         
+        col_name = f'{period_key}_Count'
         if df_period.empty:
-            df_summary[f'{period_key}_Count'] = 0
+            df_item_counts[col_name] = 0
         else:
-            period_counts = df_period.groupby('Item_Name').size().reset_index(name=f'{period_key}_Count')
-            df_summary = pd.merge(df_summary, period_counts, on='Item_Name', how='left')
+            period_counts = df_period.groupby('Parsed_Item_Name')['Item_Quantity'].sum().reset_index()
+            period_counts.rename(columns={'Parsed_Item_Name': 'Item_Name', 'Item_Quantity': col_name}, inplace=True)
+            df_item_counts = pd.merge(df_item_counts, period_counts, on='Item_Name', how='left')
 
-    df_summary['Historical_Count'] = df_summary['Item_Name'].map(historical_counts).fillna(0)
-    df_summary['All_Time_Count'] = df_summary.get('All_Time_Count', 0).fillna(0) + df_summary['Historical_Count']
-    
-    df_summary.drop(columns=['Historical_Count'], inplace=True)
-    df_summary = df_summary.fillna(0).astype({col: int for col in df_summary.columns if 'Count' in col})
+    df_item_counts['Historical_Count'] = df_item_counts['Item_Name'].map(historical_counts).fillna(0)
 
-    df_summary['Group'] = df_summary['Item_Name'].map(item_to_group_map).fillna(other_group_name)
+    df_item_counts['All_Time_Count'] = df_item_counts.get('All_Time_Count', 0).fillna(0) + df_item_counts['Historical_Count']
     
-    logging.info(f"--> Generated collection log report with {len(df_summary)} unique items.")
+    df_item_counts.drop(columns=['Historical_Count'], inplace=True)
+    df_item_counts = df_item_counts.fillna(0).astype({col: int for col in df_item_counts.columns if '_Count' in col})
+
+    # 4. Build the final report by mapping items to their groups
+    item_group_pairs = []
+    grouped_item_set = set()
+    for group in hist_data.get('groups', []):
+        group_title = group.get('title')
+        for item_name in group.get('items', []):
+            item_group_pairs.append({'Group': group_title, 'Item_Name': item_name})
+            grouped_item_set.add(item_name)
+    
+    df_grouped_items = pd.DataFrame(item_group_pairs)
+
+    # 5. Handle ungrouped items
+    items_with_drops = set(df_item_counts[df_item_counts['All_Time_Count'] > 0]['Item_Name'])
+    ungrouped_items = items_with_drops - grouped_item_set
+    
+    if ungrouped_items:
+        logging.info(f"Found {len(ungrouped_items)} items with drops that are not in any group. Assigning to '{other_group_name}'.")
+        df_ungrouped = pd.DataFrame({
+            'Group': other_group_name,
+            'Item_Name': list(ungrouped_items)
+        })
+        df_final_structure = pd.concat([df_grouped_items, df_ungrouped], ignore_index=True)
+    else:
+        df_final_structure = df_grouped_items
+
+    # 6. Merge the structure with the counts
+    df_summary = pd.merge(df_final_structure, df_item_counts, on='Item_Name', how='left')
+    df_summary.fillna(0, inplace=True)
+    
+
+    for col in df_summary.columns:
+        if '_Count' in col:
+            df_summary[col] = df_summary[col].astype(int)
+
+    logging.info(f"--> Generated collection log report with {len(df_summary)} total entries (items duplicated across groups).")
     return df_summary
 
 def generate_personal_bests_report(df_broadcasts, config):
@@ -435,7 +483,7 @@ def generate_personal_bests_report(df_broadcasts, config):
                 all_historical_tasks.add(task_name)
                 task_to_group_map[task_name] = group_title
                 holders = record.get('holder', [])
-                # Ensure holder is a list and handle empty string case
+                # Ensure holder is a list and handle empty string case																								 
                 if isinstance(holders, str):
                     holders = [holders] if holders else []
                 
@@ -461,7 +509,7 @@ def generate_personal_bests_report(df_broadcasts, config):
 
     df_all_pbs = pd.DataFrame(all_pbs)
     
-    # Apply blacklist rules before any other processing
+	    # Apply blacklist rules before any other processing																		   
     if blacklist_rules:
         logging.info(f"Applying {len(blacklist_rules)} PB blacklist rules...")
         
@@ -470,7 +518,7 @@ def generate_personal_bests_report(df_broadcasts, config):
         }
         if globally_blacklisted_users:
             logging.info(f"  - Global blacklist for users: {', '.join(globally_blacklisted_users)}")
-            # First, remove them from any group records
+            # First, remove them from any group records																		   
             df_all_pbs['All_Holders'] = df_all_pbs['All_Holders'].apply(
                 lambda holders: [h for h in holders if h not in globally_blacklisted_users] if isinstance(holders, list) else holders
             )
@@ -568,7 +616,7 @@ def generate_personal_bests_report(df_broadcasts, config):
 
     df_summary = pd.DataFrame.from_dict(final_records, orient='index')
     
-    # Ensure all historical tasks are present in the final report
+    # Ensure all historical tasks are present in the final report																					  
     processed_tasks = set(df_summary['Task']) if not df_summary.empty else set()
     missing_tasks = all_historical_tasks - processed_tasks
     if missing_tasks:
@@ -651,7 +699,7 @@ def main():
         df_broadcasts['Timestamp'] = pd.to_datetime(df_broadcasts['Timestamp'], errors='coerce', utc=True)
         df_chat['Timestamp'] = pd.to_datetime(df_chat['Timestamp'], errors='coerce', utc=True)
         
-        # --- Apply Username Mapping ---
+        # --- Apply Username Mapping ---													  
         mapping_rules = config.get('username_mapping', {}).get('rules', [])
         if mapping_rules:
             logging.info("Username mapping rules found. Applying them now...")
