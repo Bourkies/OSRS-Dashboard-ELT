@@ -64,7 +64,7 @@ def create_metadata_tables(engine, config, periods):
     pb_historical_file = SRC_ROOT / config.get('historical_data', {}).get('personal_bests_file')
     with open(pb_historical_file, "rb") as f:
         pb_hist_data = tomllib.load(f)
-    pb_settings = pb_hist_data.get('settings', {})
+												  
     pb_item_orders = {g.get('title'): [r.get('name') for r in g.get('records', [])] for g in pb_hist_data.get('groups', [])}
 
     clog_historical_file = SRC_ROOT / config.get('historical_data', {}).get('collection_log_file')
@@ -82,13 +82,13 @@ def create_metadata_tables(engine, config, periods):
         {'key': 'label_ytd', 'value': periods['YTD']['label']},
         {'key': 'label_custom_days', 'value': periods['Custom_Days']['label']},
         
-        {'key': 'pb_other_group_name', 'value': pb_settings.get('other_group_name', 'Miscellaneous PBs')},
-        {'key': 'pb_default_group_sort', 'value': pb_settings.get('default_group_sort', 'config')},
-        {'key': 'pb_default_item_sort', 'value': pb_settings.get('default_item_sort', 'alphabetical')},
+        {'key': 'pb_other_group_name', 'value': pb_hist_data.get('other_group_name', 'Miscellaneous PBs')},
+        {'key': 'pb_default_group_sort', 'value': pb_hist_data.get('default_group_sort', 'config')},
+        {'key': 'pb_default_item_sort', 'value': pb_hist_data.get('default_item_sort', 'alphabetical')},
         {'key': 'pb_group_order', 'value': json.dumps(list(pb_item_orders.keys()))},
         {'key': 'pb_item_orders', 'value': json.dumps(pb_item_orders)},
 
-        # --- FIX: Read settings from the top level of the TOML data ---
+        # --- FIX: Read settings from the top level of the TOML data ---																		
         {'key': 'clog_other_group_name', 'value': clog_hist_data.get('other_group_name', 'Miscellaneous Drops')},
         {'key': 'clog_default_group_sort', 'value': clog_hist_data.get('default_group_sort', 'config')},
         {'key': 'clog_default_item_sort', 'value': clog_hist_data.get('default_item_sort', 'alphabetical')},
@@ -339,7 +339,7 @@ def generate_collection_log_report(df_broadcasts, config, periods):
     with open(historical_file, "rb") as f:
         hist_data = tomllib.load(f)
         
-    # --- FIX: Read settings from the top level of the TOML data ---
+	# --- FIX: Read settings from the top level of the TOML data ---																
     exclude_rules = hist_data.get('exclude_rules', [])
     other_group_name = hist_data.get('other_group_name', 'Miscellaneous Drops')
     historical_counts = {item['name']: item['count'] for item in hist_data.get('initial_counts', [])}
@@ -469,7 +469,7 @@ def generate_personal_bests_report(df_broadcasts, config):
         
     exclude_rules = hist_data.get('exclude_rules', [])
     blacklist_rules = hist_data.get('blacklist', [])
-    other_group_name = hist_data.get('settings', {}).get('other_group_name', 'Miscellaneous PBs')
+    other_group_name = hist_data.get('other_group_name', 'Miscellaneous PBs')
     
     all_pbs = []
     task_to_group_map = {}
@@ -483,14 +483,14 @@ def generate_personal_bests_report(df_broadcasts, config):
                 all_historical_tasks.add(task_name)
                 task_to_group_map[task_name] = group_title
                 holders = record.get('holder', [])
-                # Ensure holder is a list and handle empty string case																								 
+                # Ensure holder is a list and handle empty string case																							   
                 if isinstance(holders, str):
                     holders = [holders] if holders else []
                 
                 all_pbs.append({
                     'Task_Name': task_name,
                     'PB_Time': record.get('time'),
-                    'Username': holders[0] if holders else "", # Use empty string for no holder
+                    'Username': holders[0] if holders else "", 
                     'All_Holders': holders,
                     'Timestamp': pd.Timestamp.min.replace(tzinfo=timezone.utc),
                     'is_historical': True
@@ -509,7 +509,7 @@ def generate_personal_bests_report(df_broadcasts, config):
 
     df_all_pbs = pd.DataFrame(all_pbs)
     
-	    # Apply blacklist rules before any other processing																		   
+	    # Apply blacklist rules before any other processing																					 
     if blacklist_rules:
         logging.info(f"Applying {len(blacklist_rules)} PB blacklist rules...")
         
@@ -518,7 +518,7 @@ def generate_personal_bests_report(df_broadcasts, config):
         }
         if globally_blacklisted_users:
             logging.info(f"  - Global blacklist for users: {', '.join(globally_blacklisted_users)}")
-            # First, remove them from any group records																		   
+            # First, remove them from any group records																					
             df_all_pbs['All_Holders'] = df_all_pbs['All_Holders'].apply(
                 lambda holders: [h for h in holders if h not in globally_blacklisted_users] if isinstance(holders, list) else holders
             )
@@ -533,10 +533,13 @@ def generate_personal_bests_report(df_broadcasts, config):
             task = rule.get('task_name')
             max_time_str = rule.get('max_time')
 
-            if not task and not max_time_str: # Global user blacklist
+            if not task and not max_time_str:  # Global user blacklist
                 user_mask = (df_all_pbs['Username'] == user)
                 keep_mask &= ~user_mask
-            elif task and max_time_str: # Specific task/time blacklist
+            elif task and not max_time_str:  # Specific task blacklist (any time)
+                rule_mask = (df_all_pbs['Username'] == user) & (df_all_pbs['Task_Name'] == task)
+                keep_mask &= ~rule_mask
+            elif task and max_time_str:  # Specific task/time blacklist
                 max_time_seconds = time_str_to_seconds(max_time_str)
                 rule_mask = (df_all_pbs['Username'] == user) & (df_all_pbs['Task_Name'] == task)
                 if rule_mask.any():
@@ -545,7 +548,7 @@ def generate_personal_bests_report(df_broadcasts, config):
                     indices_to_blacklist = df_all_pbs.loc[rule_mask][blacklisted_times_mask].index
                     keep_mask.loc[indices_to_blacklist] = False
             else:
-                 logging.warning(f"Skipping invalid blacklist rule (must be global or have both task_name and max_time): {rule}")
+                logging.warning(f"Skipping invalid blacklist rule. A rule must be global (user only), task-specific (user and task), or task-and-time-specific (user, task, and max_time). Rule: {rule}")
 
         initial_rows = len(df_all_pbs)
         df_all_pbs = df_all_pbs[keep_mask].reset_index(drop=True)
@@ -601,22 +604,26 @@ def generate_personal_bests_report(df_broadcasts, config):
             all_holders.extend(later_achievers_df['Username'].tolist())
 
         unique_holders = sorted(list(set(filter(None, all_holders))))
-        final_record_details = best_time_df.iloc[0]
         
-        first_db_record = best_time_df[~best_time_df['is_historical']]
-        record_date = first_db_record.iloc[0]['Timestamp'].strftime('%Y-%m-%d') if not first_db_record.empty else None
+        # The definitive record is the first one in the sorted list (earliest timestamp).
+        definitive_record = best_time_df.iloc[0]
+        
+        # A date is only set if this definitive record is from the DB (not historical).
+        record_date = None
+        if not definitive_record['is_historical']:
+            record_date = definitive_record['Timestamp'].strftime('%Y-%m-%d')
 
         final_records[task_name] = {
             'Task': task_name,
             'Holder': ', '.join(unique_holders),
-            'Time': final_record_details['PB_Time'],
+            'Time': definitive_record['PB_Time'],
             'Date': record_date,
             'Group': task_to_group_map.get(task_name, other_group_name)
         }
 
     df_summary = pd.DataFrame.from_dict(final_records, orient='index')
     
-    # Ensure all historical tasks are present in the final report																					  
+    # Ensure all historical tasks are present in the final report																						
     processed_tasks = set(df_summary['Task']) if not df_summary.empty else set()
     missing_tasks = all_historical_tasks - processed_tasks
     if missing_tasks:
@@ -699,7 +706,7 @@ def main():
         df_broadcasts['Timestamp'] = pd.to_datetime(df_broadcasts['Timestamp'], errors='coerce', utc=True)
         df_chat['Timestamp'] = pd.to_datetime(df_chat['Timestamp'], errors='coerce', utc=True)
         
-        # --- Apply Username Mapping ---													  
+        # --- Apply Username Mapping ---														   
         mapping_rules = config.get('username_mapping', {}).get('rules', [])
         if mapping_rules:
             logging.info("Username mapping rules found. Applying them now...")
