@@ -1,5 +1,4 @@
 import pandas as pd
-import logging
 try:
     import tomllib
 except ImportError:
@@ -11,11 +10,13 @@ from sqlalchemy import inspect
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 import itertools
+from loguru import logger
 
 from shared_utils import (
-    setup_logging, load_config, get_db_engine, write_summary_file,
+    load_config, get_db_engine, write_summary_file,
     SRC_ROOT, SUMMARIES_DIR, PROJECT_ROOT, post_to_discord_webhook, get_time_periods
 )
+from loguru_setup import loguru_setup
 
 SCRIPT_NAME = "3_transform_data"
 
@@ -54,7 +55,7 @@ def get_records_for_period(df, start_date=None, end_date=None):
 
 def create_metadata_tables(engine, config, periods):
     """Creates tables for run metadata and dashboard config, including dynamic labels."""
-    logging.info("Creating/updating metadata tables...")
+    logger.info("Creating/updating metadata tables...")
     run_time_iso = periods['All_Time']['end'].isoformat()
     
     df_meta = pd.DataFrame([{'last_updated_utc': run_time_iso}])
@@ -88,7 +89,6 @@ def create_metadata_tables(engine, config, periods):
         {'key': 'pb_group_order', 'value': json.dumps(list(pb_item_orders.keys()))},
         {'key': 'pb_item_orders', 'value': json.dumps(pb_item_orders)},
 
-        # --- FIX: Read settings from the top level of the TOML data ---																		
         {'key': 'clog_other_group_name', 'value': clog_hist_data.get('other_group_name', 'Miscellaneous Drops')},
         {'key': 'clog_default_group_sort', 'value': clog_hist_data.get('default_group_sort', 'config')},
         {'key': 'clog_default_item_sort', 'value': clog_hist_data.get('default_item_sort', 'alphabetical')},
@@ -96,13 +96,13 @@ def create_metadata_tables(engine, config, periods):
         {'key': 'clog_item_orders', 'value': json.dumps(clog_item_orders)},
     ])
     df_config.to_sql('dashboard_config', engine, if_exists='replace', index=False)
-    logging.info("--> Metadata tables updated successfully.")
+    logger.success("--> Metadata tables updated successfully.")
 
 # --- Username Mapping Functions ---
 
 def validate_mapping_rules(rules):
     """Checks for overlapping time ranges for the same source username and logs a warning."""
-    logging.info("Validating username mapping rules for conflicts...")
+    logger.info("Validating username mapping rules for conflicts...")
     def parse_date(date_str, default):
         if not date_str: return default
         return pd.to_datetime(date_str, errors='coerce', utc=True)
@@ -112,7 +112,7 @@ def validate_mapping_rules(rules):
         start = parse_date(rule.get('start_date'), pd.Timestamp.min.replace(tzinfo=timezone.utc))
         end = parse_date(rule.get('end_date'), pd.Timestamp.max.replace(tzinfo=timezone.utc))
         if pd.isna(start) or pd.isna(end):
-            logging.warning(f"Skipping rule {i+1} due to invalid date format: {rule}")
+            logger.warning(f"Skipping rule {i+1} due to invalid date format: {rule}")
             continue
         processed_rules.append({
             'sources': set(rule.get('source_usernames', [])),
@@ -127,13 +127,13 @@ def validate_mapping_rules(rules):
             continue
 
         if r1['start'] < r2['end'] and r2['start'] < r1['end']:
-            logging.warning(
+            logger.warning(
                 f"Conflict detected in username mapping! "
                 f"Rule #{r1['rule_index']} and Rule #{r2['rule_index']} both apply to "
                 f"'{', '.join(common_sources)}' during an overlapping time period. "
                 f"The rule that appears later in the config will take precedence."
             )
-    logging.info("--> Validation of mapping rules complete.")
+    logger.info("--> Validation of mapping rules complete.")
 
 def apply_username_mapping(df, rules, username_columns):
     """Applies username mapping rules to the specified columns in a DataFrame."""
@@ -170,7 +170,7 @@ def apply_username_mapping(df, rules, username_columns):
 # --- Report Generators ---
 
 def generate_leaderboard_reports(df_chat, df_broadcasts, config, periods):
-    logging.info("Generating all configured leaderboard reports...")
+    logger.info("Generating all configured leaderboard reports...")
     reports = {}
     report_configs = config['dashboard_settings'].get('leaderboard_reports', [])
     
@@ -193,7 +193,7 @@ def generate_leaderboard_reports(df_chat, df_broadcasts, config, periods):
                 df_filtered = df_filtered[df_filtered['Content'].str.contains(search_regex, case=False, na=False)]
             
             if df_filtered.empty:
-                logging.warning(f"Skipping leaderboard report '{name}': No source data after filtering.")
+                logger.warning(f"Skipping leaderboard report '{name}': No source data after filtering.")
                 reports[name] = pd.DataFrame()
                 continue
             
@@ -208,7 +208,7 @@ def generate_leaderboard_reports(df_chat, df_broadcasts, config, periods):
                 agg_spec['Value_All_Time'] = pd.NamedAgg(column=aggregations['Value'], aggfunc='sum')
 
             if not agg_spec:
-                logging.warning(f"No aggregations defined for report '{name}'. Skipping.")
+                logger.warning(f"No aggregations defined for report '{name}'. Skipping.")
                 continue
 
             df_summary = df_filtered.groupby(group_by_col).agg(**agg_spec).reset_index()
@@ -233,14 +233,14 @@ def generate_leaderboard_reports(df_chat, df_broadcasts, config, periods):
                     df_summary[col] = df_summary[col].fillna(0).astype(int)
             
             reports[name] = df_summary
-            logging.info(f"--> Generated leaderboard report '{name}' with {len(df_summary)} entries.")
+            logger.info(f"--> Generated leaderboard report '{name}' with {len(df_summary)} entries.")
         except Exception as e:
-            logging.error(f"Failed to generate leaderboard report '{rc.get('report_name', 'Unknown')}': {e}", exc_info=True)
+            logger.error(f"Failed to generate leaderboard report '{rc.get('report_name', 'Unknown')}': {e}", exc_info=True)
             
     return reports
 
 def generate_detailed_reports(df_broadcasts, config, periods):
-    logging.info("Generating all configured detailed reports...")
+    logger.info("Generating all configured detailed reports...")
     reports = {}
     report_configs = config['dashboard_settings'].get('detailed_reports', [])
 
@@ -261,23 +261,23 @@ def generate_detailed_reports(df_broadcasts, config, periods):
                 table_name = f"{name_prefix}_{period_key.lower()}"
                 if df_filtered.empty:
                     reports[table_name] = pd.DataFrame()
-                    logging.info(f"--> Generated empty detailed report '{table_name}' due to no source data.")
+                    logger.info(f"--> Generated empty detailed report '{table_name}' due to no source data.")
                 else:
                     df_period = get_records_for_period(df_filtered, start_date=dates['start'], end_date=dates['end'])
                     reports[table_name] = df_period
-                    logging.info(f"--> Generated detailed report '{table_name}' with {len(df_period)} rows.")
+                    logger.info(f"--> Generated detailed report '{table_name}' with {len(df_period)} rows.")
 
         except Exception as e:
-            logging.error(f"Failed to generate detailed report for '{rc.get('report_name_prefix', 'Unknown')}': {e}", exc_info=True)
+            logger.error(f"Failed to generate detailed report for '{rc.get('report_name_prefix', 'Unknown')}': {e}", exc_info=True)
             
     return reports
 
 def generate_timeseries_reports(df_source, config):
-    logging.info("Generating all configured timeseries reports...")
+    logger.info("Generating all configured timeseries reports...")
     reports = {}
     report_configs = config['dashboard_settings'].get('timeseries_reports', [])
     if not report_configs: 
-        logging.warning("No timeseries reports configured.")
+        logger.warning("No timeseries reports configured.")
         return reports
 
     df_source['Timestamp'] = pd.to_datetime(df_source['Timestamp'], errors='coerce', utc=True)
@@ -289,7 +289,7 @@ def generate_timeseries_reports(df_source, config):
             df_filtered = df_source[df_source['Broadcast_Type'] == rc['broadcast_type']].copy()
             
             if df_filtered.empty: 
-                logging.info(f"--> No data for timeseries report '{name}', creating empty table.")
+                logger.info(f"--> No data for timeseries report '{name}', creating empty table.")
                 reports[name] = pd.DataFrame()
                 continue
             
@@ -317,9 +317,9 @@ def generate_timeseries_reports(df_source, config):
 
             df_final = pd.concat(all_resampled).rename(columns={'Timestamp': 'Date'})
             reports[name] = df_final
-            logging.info(f"--> Generated timeseries report '{name}' for freqs {rc['frequencies']} with {len(df_final)} entries.")
+            logger.info(f"--> Generated timeseries report '{name}' for freqs {rc['frequencies']} with {len(df_final)} entries.")
         except Exception as e:
-            logging.error(f"Failed to generate timeseries report '{rc.get('report_name', 'Unknown')}': {e}", exc_info=True)
+            logger.error(f"Failed to generate timeseries report '{rc.get('report_name', 'Unknown')}': {e}", exc_info=True)
     
     return reports
 
@@ -328,18 +328,17 @@ def generate_collection_log_report(df_broadcasts, config, periods):
     Generates the collection log summary. An item can appear in multiple groups,
     and item names with quantities (e.g., '72 x Onyx bolts') are parsed.
     """
-    logging.info("Generating collection log report...")
+    logger.info("Generating collection log report...")
     clog_config = config.get('dashboard_settings', {}).get('collection_log', {})
     
     historical_file = SRC_ROOT / config.get('historical_data', {}).get('collection_log_file')
     if not historical_file.exists():
-        logging.error(f"Historical collection log file not found at {historical_file}")
+        logger.error(f"Historical collection log file not found at {historical_file}")
         return pd.DataFrame()
         
     with open(historical_file, "rb") as f:
         hist_data = tomllib.load(f)
         
-	# --- FIX: Read settings from the top level of the TOML data ---																
     exclude_rules = hist_data.get('exclude_rules', [])
     other_group_name = hist_data.get('other_group_name', 'Miscellaneous Drops')
     historical_counts = {item['name']: item['count'] for item in hist_data.get('initial_counts', [])}
@@ -350,11 +349,11 @@ def generate_collection_log_report(df_broadcasts, config, periods):
     
     if exclude_rules:
         flat_exclude_list = [item for sublist in exclude_rules for item in sublist]
-        logging.info(f"Applying {len(flat_exclude_list)} exclusion rules to collection log items...")
+        logger.info(f"Applying {len(flat_exclude_list)} exclusion rules to collection log items...")
         initial_rows = len(df_clog_source)
         exclude_mask = df_clog_source['Item_Name'].isin(flat_exclude_list)
         df_clog_source = df_clog_source[~exclude_mask]
-        logging.info(f"--> Excluded {initial_rows - len(df_clog_source)} CLog items.")
+        logger.info(f"--> Excluded {initial_rows - len(df_clog_source)} CLog items.")
 
     dedup_type = clog_config.get('deduplication_type')
     if dedup_type:
@@ -363,7 +362,7 @@ def generate_collection_log_report(df_broadcasts, config, periods):
         
         df_deduped = df_to_dedup.drop_duplicates(subset=['Username', 'Item_Name'])
         df_clog_source = pd.concat([df_deduped, df_others])
-        logging.info(f"Deduplicated {len(df_to_dedup) - len(df_deduped)} rows for broadcast type '{dedup_type}'.")
+        logger.info(f"Deduplicated {len(df_to_dedup) - len(df_deduped)} rows for broadcast type '{dedup_type}'.")
 
     # 2. Parse item name and quantity
     def parse_item_and_quantity(item_name_str):
@@ -427,7 +426,7 @@ def generate_collection_log_report(df_broadcasts, config, periods):
     ungrouped_items = items_with_drops - grouped_item_set
     
     if ungrouped_items:
-        logging.info(f"Found {len(ungrouped_items)} items with drops that are not in any group. Assigning to '{other_group_name}'.")
+        logger.info(f"Found {len(ungrouped_items)} items with drops that are not in any group. Assigning to '{other_group_name}'.")
         df_ungrouped = pd.DataFrame({
             'Group': other_group_name,
             'Item_Name': list(ungrouped_items)
@@ -445,14 +444,14 @@ def generate_collection_log_report(df_broadcasts, config, periods):
         if '_Count' in col:
             df_summary[col] = df_summary[col].astype(int)
 
-    logging.info(f"--> Generated collection log report with {len(df_summary)} total entries (items duplicated across groups).")
+    logger.info(f"--> Generated collection log report with {len(df_summary)} total entries (items duplicated across groups).")
     return df_summary
 
 def generate_personal_bests_report(df_broadcasts, config):
     """
     Generates the personal bests summary table with logic for grouping team records.
     """
-    logging.info("Generating personal bests report...")
+    logger.info("Generating personal bests report...")
     pb_config = config.get('dashboard_settings', {}).get('personal_bests', {})
     
     time_similarity_threshold = pb_config.get('pb_time_similarity_threshold_seconds', 0.6)
@@ -461,7 +460,7 @@ def generate_personal_bests_report(df_broadcasts, config):
 
     historical_file = SRC_ROOT / config.get('historical_data', {}).get('personal_bests_file')
     if not historical_file.exists():
-        logging.error(f"Historical personal bests file not found at {historical_file}")
+        logger.error(f"Historical personal bests file not found at {historical_file}")
         return pd.DataFrame()
     
     with open(historical_file, "rb") as f:
@@ -504,20 +503,20 @@ def generate_personal_bests_report(df_broadcasts, config):
         all_pbs.extend(df_pbs_source.to_dict('records'))
 
     if not all_pbs:
-        logging.warning("No historical or new personal bests found.")
+        logger.warning("No historical or new personal bests found.")
         return pd.DataFrame()
 
     df_all_pbs = pd.DataFrame(all_pbs)
     
 	    # Apply blacklist rules before any other processing																					 
     if blacklist_rules:
-        logging.info(f"Applying {len(blacklist_rules)} PB blacklist rules...")
+        logger.info(f"Applying {len(blacklist_rules)} PB blacklist rules...")
         
         globally_blacklisted_users = {
             rule['username'] for rule in blacklist_rules if 'task_name' not in rule and 'username' in rule
         }
         if globally_blacklisted_users:
-            logging.info(f"  - Global blacklist for users: {', '.join(globally_blacklisted_users)}")
+            logger.info(f"  - Global blacklist for users: {', '.join(globally_blacklisted_users)}")
             # First, remove them from any group records																					
             df_all_pbs['All_Holders'] = df_all_pbs['All_Holders'].apply(
                 lambda holders: [h for h in holders if h not in globally_blacklisted_users] if isinstance(holders, list) else holders
@@ -527,7 +526,7 @@ def generate_personal_bests_report(df_broadcasts, config):
         for rule in blacklist_rules:
             user = rule.get('username')
             if not user:
-                logging.warning(f"Skipping invalid blacklist rule (missing username): {rule}")
+                logger.warning(f"Skipping invalid blacklist rule (missing username): {rule}")
                 continue
 
             task = rule.get('task_name')
@@ -548,14 +547,14 @@ def generate_personal_bests_report(df_broadcasts, config):
                     indices_to_blacklist = df_all_pbs.loc[rule_mask][blacklisted_times_mask].index
                     keep_mask.loc[indices_to_blacklist] = False
             else:
-                logging.warning(f"Skipping invalid blacklist rule. A rule must be global (user only), task-specific (user and task), or task-and-time-specific (user, task, and max_time). Rule: {rule}")
+                logger.warning(f"Skipping invalid blacklist rule. A rule must be global (user only), task-specific (user and task), or task-and-time-specific (user, task, and max_time). Rule: {rule}")
 
         initial_rows = len(df_all_pbs)
         df_all_pbs = df_all_pbs[keep_mask].reset_index(drop=True)
-        logging.info(f"--> Removed a total of {initial_rows - len(df_all_pbs)} blacklisted PB records.")
+        logger.info(f"--> Removed a total of {initial_rows - len(df_all_pbs)} blacklisted PB records.")
 
     if exclude_rules:
-        logging.info(f"Applying {len(exclude_rules)} exclusion rules to personal bests...")
+        logger.info(f"Applying {len(exclude_rules)} exclusion rules to personal bests...")
         initial_rows = len(df_all_pbs)
         exclude_mask = pd.Series(False, index=df_all_pbs.index)
         for rule_set in exclude_rules:
@@ -564,7 +563,7 @@ def generate_personal_bests_report(df_broadcasts, config):
                 current_rule_mask &= df_all_pbs['Task_Name'].str.contains(required_string, na=False, regex=False)
             exclude_mask |= current_rule_mask
         df_all_pbs = df_all_pbs[~exclude_mask]
-        logging.info(f"--> Excluded {initial_rows - len(df_all_pbs)} PB records.")
+        logger.info(f"--> Excluded {initial_rows - len(df_all_pbs)} PB records.")
 
     df_all_pbs['Timestamp'] = pd.to_datetime(df_all_pbs['Timestamp'], errors='coerce', utc=True)
     df_all_pbs['seconds'] = df_all_pbs.apply(
@@ -638,15 +637,15 @@ def generate_personal_bests_report(df_broadcasts, config):
             })
         df_missing = pd.DataFrame(missing_records)
         df_summary = pd.concat([df_summary, df_missing], ignore_index=True)
-        logging.info(f"--> Added back {len(missing_tasks)} tasks that had no valid record holders after blacklisting.")
+        logger.info(f"--> Added back {len(missing_tasks)} tasks that had no valid record holders after blacklisting.")
 
-    logging.info(f"--> Generated personal bests report with {len(df_summary)} unique items.")
+    logger.info(f"--> Generated personal bests report with {len(df_summary)} unique items.")
     return df_summary
 
 
 def generate_recent_achievements_report(df_broadcasts, config):
     """Generates a table of recent achievements, creating special categories for maxed skills."""
-    logging.info("Generating recent achievements report...")
+    logger.info("Generating recent achievements report...")
     ra_config = config.get('dashboard_settings', {}).get('recent_achievements', {})
     
     source_types = ra_config.get('source_types', [])
@@ -655,7 +654,7 @@ def generate_recent_achievements_report(df_broadcasts, config):
     df_source = df_broadcasts[df_broadcasts['Broadcast_Type'].isin(source_types)].copy()
     
     if df_source.empty:
-        logging.info("No broadcasts found for recent achievements report.")
+        logger.info("No broadcasts found for recent achievements report.")
         return pd.DataFrame()
 
     df_levelups = df_source[df_source['Broadcast_Type'] == 'Level Up'].copy()
@@ -671,13 +670,14 @@ def generate_recent_achievements_report(df_broadcasts, config):
     df_combined.sort_values(by='Timestamp', ascending=False, inplace=True)
     df_recent = df_combined.groupby('Broadcast_Type').head(limit_per_type)
     
-    logging.info(f"--> Generated recent achievements report with {len(df_recent)} entries.")
+    logger.info(f"--> Generated recent achievements report with {len(df_recent)} entries.")
     return df_recent
 
 
 def main():
-    setup_logging(SCRIPT_NAME)
     config = load_config()
+    loguru_setup(config, PROJECT_ROOT)
+    logger.info(f"{f' Starting {SCRIPT_NAME} ':=^80}")
     
     parsed_engine = get_db_engine(config['databases']['parsed_db_uri'])
     optimised_db_uri = config['databases']['optimised_db_uri']
@@ -685,7 +685,7 @@ def main():
     if optimised_db_uri.startswith('sqlite'):
         db_file_path = (PROJECT_ROOT / optimised_db_uri.split('///')[1]).resolve()
         if os.path.exists(db_file_path):
-            logging.info(f"Existing optimised database found at '{db_file_path}'. Deleting it.")
+            logger.info(f"Existing optimised database found at '{db_file_path}'. Deleting it.")
             os.remove(db_file_path)
 
     optimised_engine = get_db_engine(optimised_db_uri)
@@ -693,7 +693,7 @@ def main():
 
     summary_stats = {}
     try:
-        logging.info("Reading data from parsed database...")
+        logger.info("Reading data from parsed database...")
         df_broadcasts = pd.read_sql_table('clan_broadcasts', parsed_engine, coerce_float=False)
         if 'New_Level' in df_broadcasts.columns:
             df_broadcasts['New_Level'] = pd.to_numeric(df_broadcasts['New_Level'], errors='coerce').astype('Int64')
@@ -709,7 +709,7 @@ def main():
         # --- Apply Username Mapping ---														   
         mapping_rules = config.get('username_mapping', {}).get('rules', [])
         if mapping_rules:
-            logging.info("Username mapping rules found. Applying them now...")
+            logger.info("Username mapping rules found. Applying them now...")
             validate_mapping_rules(mapping_rules)
             
             broadcast_user_cols = ['Username', 'Action_By', 'Opponent']
@@ -718,9 +718,9 @@ def main():
             chat_user_cols = ['Username']
             df_chat = apply_username_mapping(df_chat, mapping_rules, chat_user_cols)
             
-            logging.info("--> Username mapping applied successfully.")
+            logger.success("--> Username mapping applied successfully.")
         else:
-            logging.info("No username mapping rules found in config. Skipping.")
+            logger.info("No username mapping rules found in config. Skipping.")
 
         all_reports = {}
         create_metadata_tables(optimised_engine, config, periods)
@@ -744,7 +744,7 @@ def main():
         all_reports['recent_achievements'] = recent_achievements_report
 
 
-        logging.info("Saving all transformed tables to the optimised database...")
+        logger.info("Saving all transformed tables to the optimised database...")
         for name, df_report in all_reports.items():
             if df_report is not None:
                 if isinstance(df_report.index, pd.CategoricalIndex):
@@ -768,15 +768,16 @@ def main():
         write_summary_file(SCRIPT_NAME, summary)
         
     except Exception as e:
+        logger.critical(f"An unexpected error occurred in main: {e}", exc_info=True)
         summary = f"**❌ {config.get('general', {}).get('project_name', 'Unnamed Project')}: {SCRIPT_NAME} FAILED**\n**Error:**\n```{e}```"
-        logging.critical(f"An unexpected error occurred in main: {e}", exc_info=True)
     finally:
         webhook_url = config.get('secrets', {}).get('discord_webhook_url')
         if 'summary' in locals() and summary and webhook_url:
             post_to_discord_webhook(webhook_url, summary)
         if parsed_engine: parsed_engine.dispose()
         if optimised_engine: optimised_engine.dispose()
-        logging.info("Database connections closed.")
+        logger.info("Database connections closed.")
+        logger.info(f"{f' Finished {SCRIPT_NAME} ':=^80}")
 
 if __name__ == "__main__":
     main()

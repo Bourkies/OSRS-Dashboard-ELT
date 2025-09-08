@@ -6,11 +6,12 @@ import re
 import asyncio
 from sqlalchemy import text, inspect, exc
 from datetime import datetime, timedelta, timezone
-import logging
+from loguru import logger
 
 from shared_utils import (
-    setup_logging, load_config, get_db_engine, write_summary_file, post_to_discord_webhook
+    load_config, get_db_engine, write_summary_file, post_to_discord_webhook, PROJECT_ROOT
 )
+from loguru_setup import loguru_setup
 
 SCRIPT_NAME = "1_fetch_data"
 
@@ -20,7 +21,7 @@ def clean_discord_escapes(text: str) -> str:
 
 def get_date_range(config: dict, engine) -> (datetime, datetime):
     """Determines the start and end dates for the data fetch."""
-    logging.info("Determining date range for data fetch...")
+    logger.info("Determining date range for data fetch...")
     mode = config['time_settings']['mode']
     now = datetime.now(timezone.utc)
 
@@ -29,7 +30,7 @@ def get_date_range(config: dict, engine) -> (datetime, datetime):
         end_str = config['custom_time_range']['custom_end_date']
         start_date = datetime.strptime(start_str, "%Y-%m-%d %H:%M").replace(tzinfo=timezone.utc)
         end_date = datetime.strptime(end_str, "%Y-%m-%d %H:%M").replace(tzinfo=timezone.utc)
-        logging.info(f"--> Using CUSTOM date range: {start_date.strftime('%Y-%m-%d %H:%M')} to {end_date.strftime('%Y-%m-%d %H:%M')} UTC")
+        logger.info(f"--> Using CUSTOM date range: {start_date.strftime('%Y-%m-%d %H:%M')} to {end_date.strftime('%Y-%m-%d %H:%M')} UTC")
         return start_date, end_date
     
     # Automatic mode
@@ -40,16 +41,16 @@ def get_date_range(config: dict, engine) -> (datetime, datetime):
             query = text("SELECT MAX(timestamp) FROM raw_logs")
             last_timestamp_str = connection.execute(query).scalar_one_or_none()
     except Exception as e:
-        logging.warning(f"Could not query for last timestamp, maybe table doesn't exist? Error: {e}")
+        logger.warning(f"Could not query for last timestamp, maybe table doesn't exist? Error: {e}")
         last_timestamp_str = None
 
     if last_timestamp_str:
         last_run_date = datetime.fromisoformat(last_timestamp_str)
         start_date = last_run_date - timedelta(minutes=config['time_settings']['start_time_overlap_minutes'])
-        logging.info(f"--> Last message in DB is from {last_run_date.strftime('%Y-%m-%d %H:%M')}. Fetching data since {start_date.strftime('%Y-%m-%d %H:%M')} UTC.")
+        logger.info(f"--> Last message in DB is from {last_run_date.strftime('%Y-%m-%d %H:%M')}. Fetching data since {start_date.strftime('%Y-%m-%d %H:%M')} UTC.")
     else:
         start_date = now - timedelta(days=config['time_settings']['max_lookback_days'])
-        logging.info(f"--> No previous data found. Fetching data for the last {config['time_settings']['max_lookback_days']} days.")
+        logger.info(f"--> No previous data found. Fetching data for the last {config['time_settings']['max_lookback_days']} days.")
         
     return start_date, end_date
 
@@ -57,7 +58,7 @@ def create_raw_table(engine):
     """Ensures the raw_logs table exists."""
     inspector = inspect(engine)
     if not inspector.has_table("raw_logs"):
-        logging.info("Table 'raw_logs' not found. Creating it...")
+        logger.info("Table 'raw_logs' not found. Creating it...")
         with engine.connect() as connection:
             with connection.begin():
                 connection.execute(text("""
@@ -69,9 +70,9 @@ def create_raw_table(engine):
                     )
                 """))
                 connection.execute(text("CREATE INDEX IF NOT EXISTS idx_timestamp ON raw_logs (timestamp);"))
-            logging.info("--> Table 'raw_logs' created successfully with a timestamp index and UNIQUE constraint.")
+            logger.success("--> Table 'raw_logs' created successfully with a timestamp index and UNIQUE constraint.")
     else:
-        logging.info("--> Table 'raw_logs' already exists.")
+        logger.info("--> Table 'raw_logs' already exists.")
 
 class DiscordFetchBot(discord.Client):
     """The bot class responsible for fetching messages."""
@@ -89,23 +90,23 @@ class DiscordFetchBot(discord.Client):
 
     async def on_ready(self):
         """Called when the bot successfully logs in."""
-        logging.info(f'--> Logged in as {self.user} to fetch data.')
+        logger.info(f'--> Logged in as {self.user} to fetch data.')
         try:
             await self.fetch_and_store_data()
             self.summary_message = self.format_summary(success=True)
             write_summary_file(SCRIPT_NAME, self.summary_message)
         except Exception as e:
-            logging.error(f"FATAL ERROR during operation: {e}", exc_info=True)
+            logger.critical(f"FATAL ERROR during operation: {e}", exc_info=True)
             self.summary['error'] = str(e)
             self.summary_message = self.format_summary(success=False)
             write_summary_file(SCRIPT_NAME, self.summary_message)
         finally:
-            logging.info("Operation complete. Logging out from Discord.")
+            logger.info("Operation complete. Logging out from Discord.")
             await self.close()
 
     async def on_disconnect(self):
         """Called when the bot disconnects; sends the summary via webhook."""
-        logging.info("Disconnected from Discord. Now posting summary via webhook.")
+        logger.info("Disconnected from Discord. Now posting summary via webhook.")
         webhook_url = self.config.get('secrets', {}).get('discord_webhook_url')
         if self.summary_message and webhook_url:
              post_to_discord_webhook(webhook_url, self.summary_message)
@@ -119,7 +120,7 @@ class DiscordFetchBot(discord.Client):
 
         self.summary['guild_name'] = channel.guild.name if hasattr(channel, 'guild') else 'Direct Message'
         self.summary['data_channel_name'] = channel.name
-        logging.info(f"Fetching messages from server: '{self.summary['guild_name']}', channel: #{channel.name}")
+        logger.info(f"Fetching messages from server: '{self.summary['guild_name']}', channel: #{channel.name}")
 
         messages_to_process = []
         fetch_counter = 0
@@ -131,13 +132,13 @@ class DiscordFetchBot(discord.Client):
                     "raw_content": clean_discord_escapes(message.content)
                 })
             if fetch_counter % 500 == 0:
-                logging.info(f"  - Discovered {fetch_counter} messages...")
+                logger.info(f"  - Discovered {fetch_counter} messages...")
         
-        logging.info(f"--> Found {len(messages_to_process)} total messages with content.")
+        logger.info(f"--> Found {len(messages_to_process)} total messages with content.")
         self.summary['messages_found'] = len(messages_to_process)
 
         if not messages_to_process:
-            logging.info("No new messages to add.")
+            logger.info("No new messages to add.")
             self.summary['messages_added'] = 0
             return
 
@@ -166,11 +167,11 @@ class DiscordFetchBot(discord.Client):
                     except exc.IntegrityError:
                         # This is a fallback for other DBs if they don't support INSERT OR IGNORE
                         # and ensures the script doesn't crash.
-                        logging.debug(f"Skipping duplicate row: {row['timestamp']}")
+                        logger.trace(f"Skipping duplicate row: {row['timestamp']}")
                         continue
 
         self.summary['messages_added'] = rows_added
-        logging.info(f"--> Successfully added {rows_added} new messages to the database. Skipped {len(df_new) - rows_added} duplicates.")
+        logger.success(f"--> Successfully added {rows_added} new messages to the database. Skipped {len(df_new) - rows_added} duplicates.")
 
     def format_summary(self, success: bool) -> str:
         """Formats the summary message."""
@@ -192,8 +193,9 @@ class DiscordFetchBot(discord.Client):
 
 def main():
     """Main execution function for the fetch data script."""
-    setup_logging(SCRIPT_NAME)
     config = load_config()
+    loguru_setup(config, PROJECT_ROOT)
+    logger.info(f"{f' Starting {SCRIPT_NAME} ':=^80}")
     
     raw_db_uri = config['databases']['raw_db_uri']
     engine = get_db_engine(raw_db_uri)
@@ -210,19 +212,20 @@ def main():
         if not token or "YOUR_DISCORD_BOT_TOKEN_HERE" in token:
             raise ValueError("Discord bot token is missing or has not been set in src/secrets.toml")
         
-        logging.info("Starting Discord bot to fetch data...")
+        logger.info("Starting Discord bot to fetch data...")
         bot.run(token)
         
     except ValueError as e:
-        logging.critical(str(e))
+        logger.critical(str(e))
     except discord.errors.LoginFailure:
-        logging.critical("Login failed: Improper token provided. Check your discord_bot_token in src/secrets.toml")
+        logger.critical("Login failed: Improper token provided. Check your discord_bot_token in src/secrets.toml")
     except Exception as e:
-        logging.critical(f"An unexpected error occurred: {e}", exc_info=True)
+        logger.critical(f"An unexpected error occurred: {e}", exc_info=True)
     finally:
         if engine:
             engine.dispose()
-            logging.info("Database connection closed.")
+            logger.info("Database connection closed.")
+        logger.info(f"{f' Finished {SCRIPT_NAME} ':=^80}")
 
 if __name__ == "__main__":
     main()

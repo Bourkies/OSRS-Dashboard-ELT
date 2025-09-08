@@ -1,6 +1,5 @@
 # src/shared_utils.py
 
-import logging
 import sys
 try:
     import tomllib # For Python 3.11+
@@ -12,6 +11,9 @@ from datetime import datetime, timedelta, timezone
 import os
 import requests
 import json
+
+from loguru import logger
+from loguru_setup import loguru_setup
 
 # --- Constants & Paths ---
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -27,34 +29,6 @@ DATA_DIR.mkdir(exist_ok=True)
 LOGS_DIR.mkdir(exist_ok=True)
 SUMMARIES_DIR.mkdir(exist_ok=True)
 
-def setup_logging(script_name: str):
-    """Configures logging to print to console and to a file."""
-    run_timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-    log_file_name = f"{script_name}_{run_timestamp}.log"
-    log_file_path = LOGS_DIR / log_file_name
-
-    log_formatter = logging.Formatter('%(asctime)s [%(levelname)-8s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
-    root_logger = logging.getLogger()
-    root_logger.setLevel(logging.INFO)
-
-    # Clear existing handlers
-    for handler in root_logger.handlers[:]:
-        handler.close()
-        root_logger.removeHandler(handler)
-
-    # Console Handler
-    console_handler = logging.StreamHandler(sys.stdout)
-    console_handler.setFormatter(log_formatter)
-    root_logger.addHandler(console_handler)
-
-    # File Handler
-    file_handler = logging.FileHandler(log_file_path, encoding='utf-8')
-    file_handler.setFormatter(log_formatter)
-    root_logger.addHandler(file_handler)
-
-    logging.info(f"Logging initialized for {script_name}. Log file: {log_file_path}")
-    return log_file_path
-
 def write_summary_file(script_name: str, summary_content: str):
     """Writes a summary file for the script run."""
     run_timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
@@ -63,29 +37,31 @@ def write_summary_file(script_name: str, summary_content: str):
     try:
         with open(summary_file_path, 'w', encoding='utf-8') as f:
             f.write(summary_content)
-        logging.info(f"Summary written to {summary_file_path}")
+        logger.info(f"Summary written to {summary_file_path}")
     except Exception as e:
-        logging.error(f"Failed to write summary file: {e}")
+        logger.error(f"Failed to write summary file: {e}")
 
 def load_config():
     """Loads configuration from config.toml and secrets.toml."""
-    logging.info("Loading configuration...")
+    # Note: We can't use the configured logger here because the config isn't loaded yet.
+    # Loguru's default logger will print to stderr, which is acceptable for this step.
+    logger.info("Loading configuration files...")
     try:
         with open(CONFIG_PATH, "rb") as f:
             config = tomllib.load(f)
-        logging.info("--> config.toml loaded successfully.")
+        logger.success("--> config.toml loaded successfully.")
 
         with open(SECRETS_PATH, "rb") as f:
             secrets = tomllib.load(f)
         config['secrets'] = secrets
-        logging.info("--> secrets.toml loaded successfully.")
+        logger.success("--> secrets.toml loaded successfully.")
 
         return config
     except FileNotFoundError as e:
-        logging.error(f"FATAL: Configuration file not found: {e}")
+        logger.critical(f"FATAL: Configuration file not found: {e}")
         sys.exit(1)
     except Exception as e:
-        logging.error(f"FATAL: Failed to parse a config file: {e}")
+        logger.critical(f"FATAL: Failed to parse a config file: {e}")
         sys.exit(1)
 
 def get_db_engine(db_uri: str):
@@ -96,13 +72,13 @@ def get_db_engine(db_uri: str):
             db_file_path = (PROJECT_ROOT / relative_path).resolve()
             db_file_path.parent.mkdir(parents=True, exist_ok=True)
             engine = create_engine(f"sqlite:///{db_file_path}")
-            logging.info(f"SQLite database engine created for: {db_file_path}")
+            logger.info(f"SQLite database engine created for: {db_file_path}")
         else:
             engine = create_engine(db_uri)
-            logging.info("Remote PostgreSQL database engine configured.")
+            logger.info("Remote PostgreSQL database engine configured.")
         return engine
     except Exception as e:
-        logging.error(f"Failed to create database engine for URI {db_uri}: {e}", exc_info=True)
+        logger.error(f"Failed to create database engine for URI {db_uri}: {e}", exc_info=True)
         return None
 
 def get_time_periods(config, run_time=None):
@@ -152,7 +128,7 @@ def get_time_periods(config, run_time=None):
 def post_to_discord_webhook(webhook_url: str, message: str):
     """Posts a message to a Discord channel using a webhook."""
     if not webhook_url or "YOUR_WEBHOOK_URL_HERE" in webhook_url:
-        logging.warning("Discord webhook URL is not configured. Skipping summary post.")
+        logger.warning("Discord webhook URL is not configured. Skipping summary post.")
         return
 
     if len(message) > 2000:
@@ -164,8 +140,8 @@ def post_to_discord_webhook(webhook_url: str, message: str):
     try:
         response = requests.post(webhook_url, data=payload, headers=headers, timeout=10)
         if response.status_code in [200, 204]:
-            logging.info("--> Summary posted to Discord via webhook.")
+            logger.info("--> Summary posted to Discord via webhook.")
         else:
-            logging.error(f"Failed to post to Discord webhook. Status: {response.status_code}, Response: {response.text}")
+            logger.error(f"Failed to post to Discord webhook. Status: {response.status_code}, Response: {response.text}")
     except requests.exceptions.RequestException as e:
-        logging.error(f"An error occurred while sending request to Discord webhook: {e}", exc_info=True)
+        logger.error(f"An error occurred while sending request to Discord webhook: {e}", exc_info=True)

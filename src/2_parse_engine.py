@@ -2,12 +2,13 @@
 
 import pandas as pd
 import re
-import logging
 from sqlalchemy import text, inspect, exc
+from loguru import logger
 
 from shared_utils import (
-    setup_logging, load_config, get_db_engine, write_summary_file, post_to_discord_webhook
+    load_config, get_db_engine, write_summary_file, post_to_discord_webhook, PROJECT_ROOT
 )
+from loguru_setup import loguru_setup
 
 SCRIPT_NAME = "2_parse_engine"
 
@@ -37,9 +38,9 @@ def parse_raw_data(df_raw: pd.DataFrame, config: dict) -> (pd.DataFrame, pd.Data
     patterns_config = config.get('patterns', {})
     item_value_overrides = config.get('item_value_overrides', {})
 
-    logging.info(f"Starting to parse {len(df_raw)} raw messages...")
+    logger.info(f"Starting to parse {len(df_raw)} raw messages...")
     if df_raw.empty:
-        logging.info("--> No messages to parse.")
+        logger.info("--> No messages to parse.")
         # Return empty dataframes with correct columns to prevent KeyErrors later
         return pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
 
@@ -83,7 +84,7 @@ def parse_raw_data(df_raw: pd.DataFrame, config: dict) -> (pd.DataFrame, pd.Data
                                 override_value = item_value_overrides.get(details['Item_Name'])
                                 if override_value:
                                     details['Item_Value'] = override_value
-                                    logging.debug(f"Applied value override for '{details['Item_Name']}': {override_value}")
+                                    logger.trace(f"Applied value override for '{details['Item_Name']}': {override_value}")
                             # --- END NEW LOGIC ---
 
                             details.update({
@@ -115,7 +116,7 @@ def parse_raw_data(df_raw: pd.DataFrame, config: dict) -> (pd.DataFrame, pd.Data
     df_broadcasts = pd.DataFrame(parsed_broadcasts)
     df_unparsed = pd.DataFrame(unparsed_logs)
     
-    logging.info(f"--> Parsing complete. Found {len(df_chat)} chat, {len(df_broadcasts)} broadcasts, and {len(df_unparsed)} unparsed messages from this run.")
+    logger.info(f"--> Parsing complete. Found {len(df_chat)} chat, {len(df_broadcasts)} broadcasts, and {len(df_unparsed)} unparsed messages from this run.")
     return df_chat, df_broadcasts, df_unparsed
 
 def get_all_ids_from_table(engine, table_name, column_name="raw_log_id"):
@@ -128,7 +129,7 @@ def get_all_ids_from_table(engine, table_name, column_name="raw_log_id"):
             result = connection.execute(text(f'SELECT {column_name} FROM {table_name}'))
             return {row[0] for row in result}
     except Exception as e:
-        logging.warning(f"Could not get IDs for {table_name}: {e}. Returning empty set.")
+        logger.warning(f"Could not get IDs for {table_name}: {e}. Returning empty set.")
         return set()
 
 def save_df_with_ignore(df: pd.DataFrame, table_name: str, engine):
@@ -149,16 +150,18 @@ def save_df_with_ignore(df: pd.DataFrame, table_name: str, engine):
                     connection.execute(stmt, row_dict)
                     rows_added += 1
                 except exc.IntegrityError:
-                    logging.debug(f"Ignoring duplicate raw_log_id {row.get('raw_log_id')} for table {table_name}")
+                    logger.trace(f"Ignoring duplicate raw_log_id {row.get('raw_log_id')} for table {table_name}")
                     continue
                 except Exception:
-                    logging.error(f"Failed to insert row into {table_name}: {row.to_dict()}", exc_info=True)
+                    logger.error(f"Failed to insert row into {table_name}: {row.to_dict()}", exc_info=True)
     return rows_added
 
 def main():
     """Main execution function for the parse engine script."""
-    setup_logging(SCRIPT_NAME)
     config = load_config()
+    loguru_setup(config, PROJECT_ROOT)
+    logger.info(f"{f' Starting {SCRIPT_NAME} ':=^80}")
+
     parse_mode = config.get('parse_settings', {}).get('mode', 'new')
 
     raw_engine = get_db_engine(config['databases']['raw_db_uri'])
@@ -178,19 +181,19 @@ def main():
         
         df_to_parse = pd.DataFrame()
         if parse_mode == 'all':
-            logging.info("Parse mode 'all' selected. Clearing parsed tables and reprocessing everything.")
+            logger.info("Parse mode 'all' selected. Clearing parsed tables and reprocessing everything.")
             with parsed_engine.connect() as connection:
                 with connection.begin():
                     for table_name in config['database_schema'].keys():
                         connection.execute(text(f'DELETE FROM "{table_name}"'))
             df_to_parse = pd.read_sql_table('raw_logs', raw_engine)
         else: # 'new' mode
-            logging.info("Parse mode 'new' selected. Processing new and previously unparsed logs.")
+            logger.info("Parse mode 'new' selected. Processing new and previously unparsed logs.")
             parsed_ids = get_all_ids_from_table(parsed_engine, 'chat') | get_all_ids_from_table(parsed_engine, 'clan_broadcasts')
             last_parsed_id = max(parsed_ids) if parsed_ids else 0
             
             df_new_raw = pd.read_sql(text(f"SELECT * FROM raw_logs WHERE id > {last_parsed_id}"), raw_engine)
-            logging.info(f"Found {len(df_new_raw)} new raw messages to parse (ID > {last_parsed_id}).")
+            logger.info(f"Found {len(df_new_raw)} new raw messages to parse (ID > {last_parsed_id}).")
 
             df_unparsed_ids = pd.read_sql_table('unparsed_logs', parsed_engine, columns=['raw_log_id'])
             if not df_unparsed_ids.empty:
@@ -199,21 +202,21 @@ def main():
                     id_tuple = tuple(id_list)
                     sql_in_clause = f"({id_tuple[0]})" if len(id_tuple) == 1 else str(id_tuple)
                     df_retry_raw = pd.read_sql(text(f"SELECT * FROM raw_logs WHERE id IN {sql_in_clause}"), raw_engine)
-                    logging.info(f"Found {len(df_retry_raw)} previously unparsed messages to re-process.")
+                    logger.info(f"Found {len(df_retry_raw)} previously unparsed messages to re-process.")
                     df_to_parse = pd.concat([df_new_raw, df_retry_raw]).drop_duplicates(subset=['id']).reset_index(drop=True)
                 else:
                     df_to_parse = df_new_raw
             else:
-                logging.info("No previously unparsed messages to re-process.")
+                logger.info("No previously unparsed messages to re-process.")
                 df_to_parse = df_new_raw
 
         # Pass the full config to the parse function
         df_chat, df_broadcasts, df_unparsed = parse_raw_data(df_to_parse, config)
 
-        logging.info("Saving parsed data to the database (duplicates will be ignored)...")
+        logger.info("Saving parsed data to the database (duplicates will be ignored)...")
         new_chats_count = save_df_with_ignore(df_chat, 'chat', parsed_engine)
         new_broadcasts_count = save_df_with_ignore(df_broadcasts, 'clan_broadcasts', parsed_engine)
-        logging.info(f"--> Added {new_chats_count} new chat messages and {new_broadcasts_count} new broadcasts.")
+        logger.success(f"--> Added {new_chats_count} new chat messages and {new_broadcasts_count} new broadcasts.")
 
         # FIX: Check if dataframes are empty before accessing columns
         successfully_reparsed_ids = set()
@@ -245,10 +248,10 @@ def main():
             f"**⚠️ Total Unparsed Messages in DB:** `{total_unparsed}`"
         )
         write_summary_file(SCRIPT_NAME, summary)
-        logging.info("Script finished successfully.")
+        logger.success("Script finished successfully.")
 
     except Exception as e:
-        logging.critical(f"An unexpected error occurred: {e}", exc_info=True)
+        logger.critical(f"An unexpected error occurred: {e}", exc_info=True)
         summary = (f"**❌ {config.get('general', {}).get('project_name', 'Unnamed Project')}: {SCRIPT_NAME} FAILED**\n**Error:**\n```{e}```")
         write_summary_file(SCRIPT_NAME, summary)
     finally:
@@ -257,7 +260,8 @@ def main():
             post_to_discord_webhook(webhook_url, summary)
         if raw_engine: raw_engine.dispose()
         if parsed_engine: parsed_engine.dispose()
-        logging.info("Database connections closed.")
+        logger.info("Database connections closed.")
+        logger.info(f"{f' Finished {SCRIPT_NAME} ':=^80}")
 
 if __name__ == "__main__":
     main()

@@ -1,6 +1,6 @@
-# OSRS Dashboard ETL Pipeline
+# OSRS Dashboard ET Pipeline
 
-This project contains the ETL (Extract, Transform, Load) for a custom clan dashboard. It is designed to be run as a Docker container, fetching data from Discord, processing it with a highly configurable Python script, and preparing it for use in a dashboard.
+This project contains the ET (Extract, Transform) pipeline for a custom clan dashboard. It is designed to be run as a Docker container, fetching data from Discord, processing it with a highly configurable Python script, and preparing it for use in a dashboard.
 
 This pipeline is intended to be deployed on a server (like a Raspberry Pi) and run on a schedule (e.g., using a cron job).
 Please note AI has been extensively used in the creation of this project
@@ -8,8 +8,8 @@ Please note AI has been extensively used in the creation of this project
 ## Features
 
 * **Discord Integration**: Fetches message history from a specified Discord channel.
-* **Advanced Regex Parsing**: Uses a TOML configuration file to define complex regex patterns for parsing different message types (e.g., chat, drops, achievements).
-* **Flexible Database Support**: Easily configurable for local SQLite databases (for testing) or production-ready PostgreSQL databases (like Supabase).
+* **Advanced Regex Parsing**: Uses TOML configuration files to define complex regex patterns for parsing different message types (e.g., chat, drops, achievements).
+* **Local Database**: Uses a local SQLite database to store all raw, parsed, and transformed data, keeping the setup simple and self-contained.
 * **Automated Username & Record Management**:
     * Combine multiple historical usernames into a single current name.
     * Blacklist specific personal bests (or all PBs for a user) to maintain leaderboard integrity.
@@ -48,12 +48,11 @@ Follow these steps to set up and run the ETL pipeline.
 ### Prerequisites
 
 * [Git](https://git-scm.com/downloads/)
-* [Docker](https://docs.docker.com/engine/install/)
-* [Docker Compose](https://docs.docker.com/compose/install/)
+* [Docker and Docker Compose](https://docs.docker.com/engine/install/) (Docker Desktop for Windows/Mac includes Compose)
 
 ### 1. Clone the Repository
 
-Clone this repository onto your server into a folder of your choosing.
+Clone this repository onto your server into a folder of your choosing. This folder will be your project root.
 
 ```bash
 git clone <your-github-repo-url> <your-project-folder-name>
@@ -62,7 +61,7 @@ cd <your-project-folder-name>
 
 ### 2. Create Persistent Directories
 
-The `data`, `logs`, and `summaries` directories are intentionally excluded from Git. You need to create them manually on your server the first time. This ensures that your data is never accidentally deleted.
+The `data`, `logs`, and `summaries` directories are intentionally excluded from Git. You need to create them manually in the project root on your server the first time. This ensures that your data is never accidentally deleted.
 
 ```bash
 mkdir data
@@ -82,11 +81,11 @@ Your secrets and configurations are kept out of Git for security and flexibility
     cp historical_collection_logs.example.toml historical_collection_logs.toml
     cp historical_personal_bests.example.toml historical_personal_bests.toml
     ```
-3.  Open each of the new `.toml` files (e.g., `nano secrets.toml`) and fill in your actual values. This is where you'll add your Discord bot token, channel IDs, database URI, username mappings, and historical data.
+3.  Open each of the new `.toml` files (e.g., `nano secrets.toml`) and fill in your actual values. This is where you'll add your Discord bot token, channel IDs, webhook URL, username mappings, and historical data.
 
 ### 4. Build the Docker Image
 
-Navigate back to the project's root directory (`cd ..`) and build the Docker image.
+Navigate back to the project's root directory (`cd ..`) and use Docker Compose to build the service image.
 
 ```bash
 docker build -t osrs-etl .

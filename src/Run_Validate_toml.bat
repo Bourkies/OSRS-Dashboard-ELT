@@ -1,11 +1,11 @@
 @echo off
-REM This script runs the OSRS Clan Reporter
+REM This script validates the project's .toml configuration files.
 
-echo Running OSRS Clan Reporter...
+echo Validating TOML files...
 echo.
 
 REM Execute the python script located in the src folder
-python Validate_toml.py
+python src/Validate_toml.py
 
 echo.
 echo Script has finished.

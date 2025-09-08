@@ -8,11 +8,11 @@ discord.py==2.6.0
 frozenlist==1.7.0
 greenlet==3.2.4
 idna==3.10
+loguru==0.7.2
 multidict==6.6.4
 numpy==2.3.2
 pandas==2.3.1
 propcache==0.3.2
-psycopg2-binary==2.9.10
 python-dateutil==2.9.0.post0
 pytz==2025.2
 requests==2.32.5
