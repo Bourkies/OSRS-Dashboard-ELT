@@ -102,10 +102,10 @@ Your secrets and configurations are kept out of Git for security and flexibility
 
 ### 4. Build the Docker Image
 
-Navigate back to the project's root directory (`cd ..`) and use Docker Compose to build the service image.
+From the project's root directory, use Docker Compose to build the service image. This command reads the `docker-compose.yml` file and builds an image named `osrs-etl`.
 
 ```bash
-docker build -t osrs-etl .
+docker-compose build
 ```
 
 ---

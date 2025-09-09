@@ -10,6 +10,8 @@ services:
     build:
       context: .  # Look for the Dockerfile in the current directory
       dockerfile: Dockerfile
+    # Explicitly name the image to match the tag used in manual `docker build` commands
+    image: osrs-etl
     container_name: osrs-etl
     # Mount volumes to persist data and logs, and to provide configurations.
     # This ensures that your data and custom settings on the host machine are used
