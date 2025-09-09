@@ -15,10 +15,10 @@ These assets are used under the terms of the **Creative Commons Attribution-NonC
 
 Below is a list of images used in this project. All are from the OSRS Wiki.
 
-*   `images/Agility_cape.png`
+*   `images/Agility_cape_detail.png`
 *   `images/Boss.png`
 *   `images/Chambers_of_Xeric_logo.png`
 *   `images/Infernal_cape_detail.png`
 *   `images/Slayer_cape_detail.png`
-*   `images/Theater_of_Blood_logo.png`
-*   `images/Tombs_of_Amascut_logo.png`
+*   `images/Theatre_of_Blood_logo.png`
+*   `images/Tombs_of_Amascut.png`

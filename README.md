@@ -117,7 +117,16 @@ docker build -t osrs-etl .
 You can trigger a single ETL run at any time with the following command. This is great for testing.
 
 ```bash
-docker run --rm -v "$(pwd)/data:/app/data" -v "$(pwd)/logs:/app/logs" -v "$(pwd)/summaries:/app/summaries" -v "$(pwd)/src/secrets.toml:/app/src/secrets.toml" -v "$(pwd)/src/config.toml:/app/src/config.toml" -v "$(pwd)/src/historical_collection_logs.toml:/app/src/historical_collection_logs.toml" -v "$(pwd)/src/historical_personal_bests.toml:/app/src/historical_personal_bests.toml" osrs-etl
+# Note: The backslashes (\) are for readability and allow you to run this multi-line command in your terminal.
+docker run --rm \
+  -v "$(pwd)/data:/app/data" \
+  -v "$(pwd)/logs:/app/logs" \
+  -v "$(pwd)/summaries:/app/summaries" \
+  -v "$(pwd)/src/secrets.toml:/app/src/secrets.toml:ro" \
+  -v "$(pwd)/src/config.toml:/app/src/config.toml:ro" \
+  -v "$(pwd)/src/historical_collection_logs.toml:/app/src/historical_collection_logs.toml:ro" \
+  -v "$(pwd)/src/historical_personal_bests.toml:/app/src/historical_personal_bests.toml:ro" \
+  osrs-etl
 ```
 
 ### Automating with Cron
@@ -127,7 +136,7 @@ To run the pipeline automatically, you can create a cron job.
 1.  Open the cron table for editing: `crontab -e`
 2.  Add a line to define the schedule. This example runs the ETL every 15 minutes:
     ```crontab
-    */15 * * * * cd /path/to/your/<your-project-folder-name> && docker run --rm -v "$(pwd)/data:/app/data" -v "$(pwd)/logs:/app/logs" -v "$(pwd)/summaries:/app/summaries" -v "$(pwd)/src/secrets.toml:/app/src/secrets.toml" -v "$(pwd)/src/config.toml:/app/src/config.toml" -v "$(pwd)/src/historical_collection_logs.toml:/app/src/historical_collection_logs.toml" -v "$(pwd)/src/historical_personal_bests.toml:/app/src/historical_personal_bests.toml" osrs-etl >> /path/to/your/<your-project-folder-name>/logs/cron.log 2>&1
+    */15 * * * * cd /path/to/your/<your-project-folder-name> && docker run --rm -v "$(pwd)/data:/app/data" -v "$(pwd)/logs:/app/logs" -v "$(pwd)/summaries:/app/summaries" -v "$(pwd)/src/secrets.toml:/app/src/secrets.toml:ro" -v "$(pwd)/src/config.toml:/app/src/config.toml:ro" -v "$(pwd)/src/historical_collection_logs.toml:/app/src/historical_collection_logs.toml:ro" -v "$(pwd)/src/historical_personal_bests.toml:/app/src/historical_personal_bests.toml:ro" osrs-etl >> /path/to/your/<your-project-folder-name>/logs/cron.log 2>&1
     ```
     **Important:**
     * Replace `/path/to/your/<your-project-folder-name>` with the actual absolute path to your project.
