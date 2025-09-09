@@ -51,9 +51,11 @@ The project is organized to separate the core application code from user-generat
 
 * **/src**: Contains all Python source code and the `.example.toml` configuration templates. This is the code that gets updated via `git pull`.
 * **/data**: (Git Ignored) Stores the local SQLite databases. This directory is mounted as a Docker volume to persist data across container runs.
+* **/images**: (Git Tracked) Stores image assets used for Discord embeds. This directory is copied into the Docker image during the build process.
 * **/logs**: (Git Ignored) Contains detailed log files for each script run. Also mounted as a Docker volume.
 * **/summaries**: (Git Ignored) Contains summary text files for each script run. Also mounted as a Docker volume.
 * `Dockerfile`: Instructions to build the ETL Docker image.
+.dockerignore: Specifies files to exclude from the Docker build context.
 * `.gitignore`: Specifies which files and directories Git should ignore, protecting your data and secrets.
 
 ---
@@ -78,7 +80,7 @@ cd <your-project-folder-name>
 
 ### 2. Create Persistent Directories
 
-The `data`, `logs`, and `summaries` directories are intentionally excluded from Git. You need to create them manually in the project root on your server the first time. This ensures that your data is never accidentally deleted.
+The `data`, `logs`, and `summaries` directories are intentionally excluded from the Git repository. You need to create them manually in the project root on your server the first time. This ensures that your local data is never accidentally deleted or overwritten by `git` commands. The `images` directory, however, is tracked by Git and will be created automatically when you clone the repository.
 
 ```bash
 mkdir data
@@ -102,7 +104,7 @@ Your secrets and configurations are kept out of Git for security and flexibility
 
 ### 4. Build the Docker Image
 
-From the project's root directory, use Docker Compose to build the service image. This command reads the `docker-compose.yml` file and builds an image named `osrs-etl`.
+From the project's root directory, use Docker Compose to build the service image. This command reads your `docker-compose.yml` file and builds the image according to its specifications.
 
 ```bash
 docker-compose build
@@ -111,8 +113,6 @@ docker-compose build
 ---
 
 ## Running the ETL
-
-Using Docker Compose simplifies running the container significantly, as it automatically applies all the volume mounts and settings defined in your `docker-compose.yml` file.
 
 ### Manual Run
 
@@ -129,7 +129,7 @@ To run the pipeline automatically, you can create a cron job.
 1.  Open the cron table for editing: `crontab -e`
 2.  Add a line to define the schedule. This example runs the ETL every 15 minutes:
     ```crontab
-    */15 * * * * cd /path/to/your/<your-project-folder-name> && docker run --rm -v "$(pwd)/data:/app/data" -v "$(pwd)/logs:/app/logs" -v "$(pwd)/summaries:/app/summaries" -v "$(pwd)/src/secrets.toml:/app/src/secrets.toml:ro" -v "$(pwd)/src/config.toml:/app/src/config.toml:ro" -v "$(pwd)/src/historical_collection_logs.toml:/app/src/historical_collection_logs.toml:ro" -v "$(pwd)/src/historical_personal_bests.toml:/app/src/historical_personal_bests.toml:ro" osrs-etl >> /path/to/your/<your-project-folder-name>/logs/cron.log 2>&1
+    */15 * * * * cd /path/to/your/<your-project-folder-name> && docker-compose run --rm etl >> /path/to/your/<your-project-folder-name>/logs/cron.log 2>&1
     ```
     **Important:**
     * Replace `/path/to/your/<your-project-folder-name>` with the actual absolute path to your project.
@@ -137,21 +137,46 @@ To run the pipeline automatically, you can create a cron job.
 
 ---
 
-## Updating the Script
+## Updating the Pipeline
 
 This workflow makes updates incredibly simple.
 
 1.  **Pull the latest code** from your GitHub repository:
     ```bash
     cd /path/to/your/<your-project-folder-name>
-    git pull
+    git pull origin main
     ```
 2.  **Rebuild the Docker image** with the new code:
     ```bash
-    docker build -t osrs-etl .
+    docker-compose build
     ```
 
 That's it! Your cron job will automatically start using the new version on its next run. Because your `data`, `logs`, `summaries`, and all your `.toml` configuration files are managed by `.gitignore` and Docker volumes, they are completely safe and will not be affected by the `git pull` command.
+
+### Troubleshooting Updates
+
+If you run `git pull` and it says "Already up to date," but you know there are new files or directories (like `images`) missing locally, your local repository might be out of sync.
+
+**Warning:** The following commands can discard local changes to tracked files. This is generally safe for this project since all your data and configurations are untracked by Git.
+
+#### Option 1: Restore a specific file or directory
+
+First, try to restore just the missing item. For example, to restore the `images` directory:
+```bash
+git restore images
+```
+If this command fails with an error like `pathspec 'images' did not match any file(s) known to git`, it means the files were never actually tracked by Git in your current branch. This indicates they may have been accidentally omitted from the repository's history.
+
+#### Option 2: Force Sync with Remote Repository
+
+If you want to force your local repository to exactly match the remote, use the following commands. This is a more forceful approach.
+```bash
+# 1. Fetch the latest information from the remote repository
+git fetch origin
+
+# 2. Force your local branch to match the remote 'main' branch
+git reset --hard origin/main
+```
 
 ## **Note on AI Generation**
 
