@@ -63,10 +63,11 @@ def create_embed_for_group(group, has_records=True):
         record_name = record.get('name', 'Unnamed Record')
         time = record.get('time', 'N/A')
         holder = record.get('holder', [])
-        date = record.get('date') # Will be None if not set
+        date = record.get('date')  # Will be None if not set
+        discord_emoji = record.get('discord_emoji', '')
 
         holder_str = ", ".join(holder) if holder else 'N/A'
-        
+
         # Build the lines for this specific record
         record_details = [
             f"**Time:** {time}",
@@ -74,8 +75,13 @@ def create_embed_for_group(group, has_records=True):
         ]
         if date:
             record_details.append(f"**Date:** {date}")
-            
-        part = f"**{record_name}**\n" + "\n".join(record_details)
+
+        # Build the title line, adding the emoji if it exists
+        title_line = f"**{record_name}**"
+        if discord_emoji:
+            title_line += f" {discord_emoji}"
+
+        part = f"{title_line}\n" + "\n".join(record_details)
         description_parts.append(part)
 
     description = "\n\n".join(description_parts)
@@ -167,18 +173,22 @@ class PBPosterClient(discord.Client):
                 if not task_name:
                     continue
 
+                # Get the emoji from the TOML record. It might be blank.
+                discord_emoji = record_from_toml.get('discord_emoji', '')
+
                 db_record = db_records_map.get(task_name)
                 if db_record:
                     # Use the up-to-date data from the database
                     # The 'Holder' column is a comma-separated string, convert to list
                     holder_val = db_record.get('Holder', '')
                     holder_list = [h.strip() for h in holder_val.split(',')] if holder_val else []
-                    
+
                     embed_group_data['records'].append({
                         'name': task_name,
                         'time': db_record.get('Time', '0:00'),
                         'holder': holder_list,
-                        'date': db_record.get('Date')
+                        'date': db_record.get('Date'),
+                        'discord_emoji': discord_emoji
                     })
                 else:
                     # No record in the DB for this task, use a default placeholder
@@ -186,7 +196,8 @@ class PBPosterClient(discord.Client):
                         'name': task_name,
                         'time': '0:00',
                         'holder': [],
-                        'date': None
+                        'date': None,
+                        'discord_emoji': discord_emoji
                     })
 
             # Check if any of the records we are about to display have a holder.

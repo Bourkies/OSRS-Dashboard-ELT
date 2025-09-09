@@ -61,17 +61,16 @@ def run_script(script_path: Path) -> float:
         result = subprocess.run(
             [sys.executable, str(script_path)],
             check=True,
-            capture_output=True,
+            # By removing `capture_output=True`, the child process's stdout and stderr
+            # will be streamed directly to the console in real-time.
             text=True,
             encoding='utf-8'
         )
         logger.success(f"--- Finished {script_path.name} successfully ---")
-        logger.debug(f"Output from {script_path.name}:\n{result.stdout}")
     except subprocess.CalledProcessError as e:
         logger.critical(f"--- FATAL ERROR during execution of {script_path.name} ---")
         logger.error(f"Return Code: {e.returncode}")
-        logger.error(f"Stdout: {e.stdout}")
-        logger.error(f"Stderr: {e.stderr}")
+        # The specific error from the script will have been printed to the console just before this.
         # Re-raise the exception to stop the entire pipeline
         raise e
     

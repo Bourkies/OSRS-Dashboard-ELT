@@ -6,6 +6,16 @@
 
 # src/historical_personal_bests.toml
 # This file defines the structure, filtering, and starting records for the Personal Bests page.
+#
+# Each record can have the following fields:
+# - name: The exact name of the task as it appears in the Discord message. (Required)
+# - time: The historical time for the record. Use "0:00" for none. (Required)
+# - holder: The historical holder(s) of the record. Can be a string or a list of strings. (Required)
+# - discord_emoji: An optional Discord emoji to display next to the record name.
+#   - For standard Unicode emojis, use the emoji itself (e.g., "🥋").
+#   - For custom server emojis, you must use the full emoji code: "<:emoji_name:emoji_id>".
+#     To get this, type \:emoji_name: in Discord and it will reveal the full code.
+
 
 # --- Settings ---
 # Defines the name for the group that catches any records not listed in the groups below.
@@ -47,80 +57,80 @@ exclude_rules = [
 title = "⏱️ Chambers of Xeric ⏱️"
 Image = "images/Chambers_of_Xeric_logo.png"
 records = [
-    { name = "Chambers of Xeric (Team Size: Solo)", time = "0:00", holder = "" },
-    { name = "Chambers of Xeric (Team Size: 2 players)", time = "0:00", holder = "" },
-    { name = "Chambers of Xeric (Team Size: 3 players)", time = "0:00", holder = "" },
-    { name = "Chambers of Xeric (Team Size: 4 players)", time = "0:00", holder = "" },
-    { name = "Chambers of Xeric (Team Size: 5 players)", time = "0:00", holder = "" },
-    { name = "Chambers of Xeric (Team Size: 6 players)", time = "0:00", holder = "" },
-    { name = "Chambers of Xeric (Team Size: 7 players)", time = "0:00", holder = "" },
-    { name = "Chambers of Xeric (Team Size: 8 players)", time = "0:00", holder = "" },
-    { name = "Chambers of Xeric (Team Size: 9 players)", time = "0:00", holder = "" },
-    { name = "Chambers of Xeric (Team Size: 10 players)", time = "0:00", holder = "" },
-    { name = "Chambers of Xeric (Team Size: 11-15 players)", time = "0:00", holder = "" },
-    { name = "Chambers of Xeric (Team Size: 16-23 players)", time = "0:00", holder = "" },
-    { name = "Chambers of Xeric (Team Size: 24+ players)", time = "0:00", holder = "" },
-    { name = "Chambers of Xeric Challenge Mode (Team Size: Solo)", time = "0:00", holder = "" },
-    { name = "Chambers of Xeric Challenge Mode (Team Size: 2 players)", time = "0:00", holder = "" },
-    { name = "Chambers of Xeric Challenge Mode (Team Size: 3 players)", time = "0:00", holder = "" },
-    { name = "Chambers of Xeric Challenge Mode (Team Size: 4 players)", time = "0:00", holder = "" },
-    { name = "Chambers of Xeric Challenge Mode (Team Size: 5 players)", time = "0:00", holder = "" },
-    { name = "Chambers of Xeric Challenge Mode (Team Size: 6 players)", time = "0:00", holder = "" },
+    { name = "Chambers of Xeric (Team Size: Solo)", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Chambers of Xeric (Team Size: 2 players)", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Chambers of Xeric (Team Size: 3 players)", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Chambers of Xeric (Team Size: 4 players)", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Chambers of Xeric (Team Size: 5 players)", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Chambers of Xeric (Team Size: 6 players)", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Chambers of Xeric (Team Size: 7 players)", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Chambers of Xeric (Team Size: 8 players)", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Chambers of Xeric (Team Size: 9 players)", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Chambers of Xeric (Team Size: 10 players)", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Chambers of Xeric (Team Size: 11-15 players)", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Chambers of Xeric (Team Size: 16-23 players)", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Chambers of Xeric (Team Size: 24+ players)", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Chambers of Xeric Challenge Mode (Team Size: Solo)", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Chambers of Xeric Challenge Mode (Team Size: 2 players)", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Chambers of Xeric Challenge Mode (Team Size: 3 players)", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Chambers of Xeric Challenge Mode (Team Size: 4 players)", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Chambers of Xeric Challenge Mode (Team Size: 5 players)", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Chambers of Xeric Challenge Mode (Team Size: 6 players)", time = "0:00", holder = "", discord_emoji = "" },
     ]
 
 [[groups]]
 title = "⏱️ Theater of Blood ⏱️"
 Image = "images/Theatre_of_Blood_logo.png"
 records = [
-    { name = "Theatre of Blood (Team Size: 2)", time = "0:00", holder = "" },
-    { name = "Theatre of Blood (Team Size: 3)", time = "0:00", holder = "" },
-    { name = "Theatre of Blood (Team Size: 4)", time = "0:00", holder = "" },
-    { name = "Theatre of Blood (Team Size: 5)", time = "0:00", holder = "" },
-    { name = "Theatre of Blood: Hard mode (Team Size: 3)", time = "0:00", holder = "" },
-    { name = "Theatre of Blood: Hard mode (Team Size: 4)", time = "0:00", holder = "" },
-    { name = "Theatre of Blood: Hard mode (Team Size: 5)", time = "0:00", holder = "" },
+    { name = "Theatre of Blood (Team Size: 2)", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Theatre of Blood (Team Size: 3)", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Theatre of Blood (Team Size: 4)", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Theatre of Blood (Team Size: 5)", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Theatre of Blood: Hard mode (Team Size: 3)", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Theatre of Blood: Hard mode (Team Size: 4)", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Theatre of Blood: Hard mode (Team Size: 5)", time = "0:00", holder = "", discord_emoji = "" },
 ]
 
 [[groups]]
 title = "⏱️ Tombs of Amascut ⏱️"
 Image = "images/Tombs_of_Amascut.png"
 records = [
-    { name = "Tombs of Amascut (team size: 1) Normal mode Overall", time = "0:00", holder = "" },
-    { name = "Tombs of Amascut (team size: 2) Normal mode Overall", time = "0:00", holder = "" },
-    { name = "Tombs of Amascut (team size: 3) Normal mode Overall", time = "0:00", holder = "" },
-    { name = "Tombs of Amascut (team size: 4) Normal mode Overall", time = "0:00", holder = "" },
-    { name = "Tombs of Amascut (team size: 5) Normal mode Overall", time = "0:00", holder = "" },
-    { name = "Tombs of Amascut (team size: 6) Normal mode Overall", time = "0:00", holder = "" },
-    { name = "Tombs of Amascut (team size: 7) Normal mode Overall", time = "0:00", holder = "" },
-    { name = "Tombs of Amascut (team size: 8) Normal mode Overall", time = "0:00", holder = "" },
-    { name = "Tombs of Amascut (team size: 1) Expert mode Overall", time = "0:00", holder = "" },
-    { name = "Tombs of Amascut (team size: 2) Expert mode Overall", time = "0:00", holder = "" },
-    { name = "Tombs of Amascut (team size: 3) Expert mode Overall", time = "0:00", holder = "" },
-    { name = "Tombs of Amascut (team size: 4) Expert mode Overall", time = "0:00", holder = "" },
-    { name = "Tombs of Amascut (team size: 5) Expert mode Overall", time = "0:00", holder = "" },
-    { name = "Tombs of Amascut (team size: 6) Expert mode Overall", time = "0:00", holder = "" },
-    { name = "Tombs of Amascut (team size: 7) Expert mode Overall", time = "0:00", holder = "" },
-    { name = "Tombs of Amascut (team size: 8) Expert mode Overall", time = "0:00", holder = "" }
+    { name = "Tombs of Amascut (team size: 1) Normal mode Overall", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Tombs of Amascut (team size: 2) Normal mode Overall", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Tombs of Amascut (team size: 3) Normal mode Overall", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Tombs of Amascut (team size: 4) Normal mode Overall", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Tombs of Amascut (team size: 5) Normal mode Overall", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Tombs of Amascut (team size: 6) Normal mode Overall", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Tombs of Amascut (team size: 7) Normal mode Overall", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Tombs of Amascut (team size: 8) Normal mode Overall", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Tombs of Amascut (team size: 1) Expert mode Overall", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Tombs of Amascut (team size: 2) Expert mode Overall", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Tombs of Amascut (team size: 3) Expert mode Overall", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Tombs of Amascut (team size: 4) Expert mode Overall", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Tombs of Amascut (team size: 5) Expert mode Overall", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Tombs of Amascut (team size: 6) Expert mode Overall", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Tombs of Amascut (team size: 7) Expert mode Overall", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Tombs of Amascut (team size: 8) Expert mode Overall", time = "0:00", holder = "", discord_emoji = "" }
 ]
 
 [[groups]]
 title = "🥋 Capes and Challenges 🥋"
 Image = "images/Infernal_cape_detail.png"
 records = [
-    { name = "Fight Caves", time = "0:00", holder = "" },
-    { name = "Inferno", time = "0:00", holder = "" },
-    { name = "Colosseum", time = "0:00", holder = "" },
-    { name = '''TzHaar-Ket-Rak's First Challenge''', time = "0:00", holder = "" },
-    { name = '''TzHaar-Ket-Rak's Second Challenge''', time = "0:00", holder = "" },
-    { name = '''TzHaar-Ket-Rak's Third Challenge''', time = "0:00", holder = "" },
-    { name = '''TzHaar-Ket-Rak's Fourth Challenge''', time = "0:00", holder = "" },
-    { name = '''TzHaar-Ket-Rak's Fifth Challenge''', time = "0:00", holder = "" },
-    { name = '''TzHaar-Ket-Rak's Sixth Challenge''', time = "0:00", holder = "" },
-    { name = '''Doom of Mokhaiotl delve level 1 - 8''', time = "0:00", holder = "" },
-    { name = "Vardorvis (Awakened)", time = "0:00", holder = "" },
-    { name = "Whisperer (Awakened)", time = "0:00", holder = "" },
-    { name = "Duke Sucellus (Awakened)", time = "0:00", holder = "" },
-    { name = "Leviathan (Awakened)", time = "0:00", holder = "" },
+    { name = "Fight Caves", time = "0:00", holder = "", discord_emoji = "<:jad:123456789012345678>" }, # Example custom emoji format
+    { name = "Inferno", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Colosseum", time = "0:00", holder = "", discord_emoji = "🥋" },
+    { name = '''TzHaar-Ket-Rak's First Challenge''', time = "0:00", holder = "", discord_emoji = "" },
+    { name = '''TzHaar-Ket-Rak's Second Challenge''', time = "0:00", holder = "", discord_emoji = "" },
+    { name = '''TzHaar-Ket-Rak's Third Challenge''', time = "0:00", holder = "", discord_emoji = "" },
+    { name = '''TzHaar-Ket-Rak's Fourth Challenge''', time = "0:00", holder = "", discord_emoji = "" },
+    { name = '''TzHaar-Ket-Rak's Fifth Challenge''', time = "0:00", holder = "", discord_emoji = "" },
+    { name = '''TzHaar-Ket-Rak's Sixth Challenge''', time = "0:00", holder = "", discord_emoji = "" },
+    { name = '''Doom of Mokhaiotl delve level 1 - 8''', time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Vardorvis (Awakened)", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Whisperer (Awakened)", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Duke Sucellus (Awakened)", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Leviathan (Awakened)", time = "0:00", holder = "", discord_emoji = "" },
     
 ]
 
@@ -128,58 +138,58 @@ records = [
 title = "💀 Slayer Bosses 💀"
 Image = "images/Slayer_cape_detail.png"
 records = [
-    { name = "Alchemical Hydra", time = "0:00", holder = "" },
-    { name = "Grotesque Guardians", time = "0:00", holder = "" },
-    { name = "Araxxor", time = "0:00", holder = "" }
+    { name = "Alchemical Hydra", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Grotesque Guardians", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Araxxor", time = "0:00", holder = "", discord_emoji = "" }
 ]
 
 [[groups]]
 title = "🐲 Bosses 🐲"
 Image = "images/Boss.png"
 records = [
-    { name = "Amoxliatl", time = "0:00", holder = "" },  
-    { name = "Gauntlet", time = "0:00", holder = "" },
-    { name = "Corrupted Gauntlet", time = "0:00", holder = "" },
-    { name = "Hespori", time = "0:00", holder = "" },
-    { name = "Nex", time = "0:00", holder = "" },
-    { name = "Nightmare(solo)", time = "0:00", holder = "" },
-    { name = "Nightmare(2 players)", time = "0:00", holder = "" },
-    { name = "Nightmare(3 players)", time = "0:00", holder = "" },
-    { name = "Nightmare(4 players)", time = "0:00", holder = "" },
-    { name = "Nightmare(5 players)", time = "0:00", holder = "" },
-    { name = "Nightmare(6+ players)", time = "0:00", holder = "" },
-    { name = "Phosani's Nightmare", time = "0:00", holder = "" },
-    { name = "Royal titans", time = "0:00", holder = "" },
-    { name = "Vardorvis", time = "0:00", holder = "" },
-    { name = "Whisperer", time = "0:00", holder = "" },
-    { name = "Duke Sucellus", time = "0:00", holder = "" },
-    { name = "Leviathan", time = "0:00", holder = "" },
-    { name = "Yama", time = "0:00", holder = "" },
-    { name = "Vorkath", time = "0:00", holder = "" },
-    { name = "Zulrah", time = "0:00", holder = "" },
-    { name = "Hueycoatl", time = "0:00", holder = "" },
-    { name = "Mimic", time = "0:00", holder = "" },
-    { name = "Phantom Muspah", time = "0:00", holder = "" },
-    { name = "Fragment of Seren", time = "0:00", holder = "" },
-    { name = "Galvek", time = "0:00", holder = "" },
-    { name = "Glough", time = "0:00", holder = "" },
-    { name = "Tempoross", time = "0:00", holder = "" },
+    { name = "Amoxliatl", time = "0:00", holder = "", discord_emoji = "" },  
+    { name = "Gauntlet", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Corrupted Gauntlet", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Hespori", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Nex", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Nightmare(solo)", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Nightmare(2 players)", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Nightmare(3 players)", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Nightmare(4 players)", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Nightmare(5 players)", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Nightmare(6+ players)", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Phosani's Nightmare", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Royal titans", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Vardorvis", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Whisperer", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Duke Sucellus", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Leviathan", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Yama", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Vorkath", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Zulrah", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Hueycoatl", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Mimic", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Phantom Muspah", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Fragment of Seren", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Galvek", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Glough", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Tempoross", time = "0:00", holder = "", discord_emoji = "" },
 ]
 
 [[groups]]
 title = "🤸 Agility Courses 🤸"
 Image = "images/Agility_cape_detail.png"
 records = [
-    { name = "Hallowed Sepulchre (Floor 1)", time = "0:00", holder = "" },
-    { name = "Hallowed Sepulchre (Floor 2)", time = "0:00", holder = "" },
-    { name = "Hallowed Sepulchre (Floor 3)", time = "0:00", holder = "" },
-    { name = "Hallowed Sepulchre (Floor 4)", time = "0:00", holder = "" },
-    { name = "Hallowed Sepulchre (Floor 5)", time = "0:00", holder = "" },
-    { name = "Hallowed Sepulchre (Overall)", time = "0:00", holder = "" },
-    { name = "Prifddinas agility course", time = "0:00", holder = "" },
-    { name = "Shayzien Rooftops (low)", time = "0:00", holder = "" },
-    { name = "Shayzien Rooftops (high)", time = "0:00", holder = "" },
-    { name = "Sledding", time = "0:00", holder = "" },
-    { name = "Colossal Wyrm (Advanced)", time = "0:00", holder = "" },
-    { name = "Colossal Wyrm (Basic)", time = "0:00", holder = "" },
+    { name = "Hallowed Sepulchre (Floor 1)", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Hallowed Sepulchre (Floor 2)", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Hallowed Sepulchre (Floor 3)", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Hallowed Sepulchre (Floor 4)", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Hallowed Sepulchre (Floor 5)", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Hallowed Sepulchre (Overall)", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Prifddinas agility course", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Shayzien Rooftops (low)", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Shayzien Rooftops (high)", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Sledding", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Colossal Wyrm (Advanced)", time = "0:00", holder = "", discord_emoji = "" },
+    { name = "Colossal Wyrm (Basic)", time = "0:00", holder = "", discord_emoji = "" },
 ]
