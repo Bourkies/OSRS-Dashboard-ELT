@@ -112,21 +112,14 @@ docker-compose build
 
 ## Running the ETL
 
+Using Docker Compose simplifies running the container significantly, as it automatically applies all the volume mounts and settings defined in your `docker-compose.yml` file.
+
 ### Manual Run
 
-You can trigger a single ETL run at any time with the following command. This is great for testing.
+You can trigger a single ETL run at any time with the following command from your project root. This is great for testing.
 
 ```bash
-# Note: The backslashes (\) are for readability and allow you to run this multi-line command in your terminal.
-docker run --rm \
-  -v "$(pwd)/data:/app/data" \
-  -v "$(pwd)/logs:/app/logs" \
-  -v "$(pwd)/summaries:/app/summaries" \
-  -v "$(pwd)/src/secrets.toml:/app/src/secrets.toml:ro" \
-  -v "$(pwd)/src/config.toml:/app/src/config.toml:ro" \
-  -v "$(pwd)/src/historical_collection_logs.toml:/app/src/historical_collection_logs.toml:ro" \
-  -v "$(pwd)/src/historical_personal_bests.toml:/app/src/historical_personal_bests.toml:ro" \
-  osrs-etl
+docker-compose run --rm etl
 ```
 
 ### Automating with Cron
