@@ -1,10 +1,8 @@
 # ---------------------------------------------------------------------- #
-#          EXAMPLE CONFIGURATION - RENAME TO config.toml                 #
+#               EXAMPLE CONFIGURATION - RENAME TO .toml                  #
 # ---------------------------------------------------------------------- #
-# This file contains the main configuration for the ETL pipeline.
-# Copy this file to "config.toml" and customize it for your environment.
-
-# src/config.toml
+# This file contains all the main configurations for the ETL pipeline.
+# Copy this to 'config.toml' and edit it to your needs.
 
 #-----------------------------------------------------------------------
 # General Settings
@@ -12,54 +10,58 @@
 [general]
 project_name = "OSRS Discord Dashboard ELT"
 
+[logging]
+  level = "DEBUG" # TRACE DEBUG INFO SUCCESS WARNING ERROR CRITICAL
+  file_path = "logs/app.log"
+  rotation = "10 MB"
+  retention = "7 days"
+  format = "{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {name: <10.10}:{function: <10.10}:{line: <4} | {message}"
+
 #-----------------------------------------------------------------------
 # ETL Runner Settings
 #-----------------------------------------------------------------------
+# Use these switches to enable or disable parts of the pipeline.
 [etl_runner]
-# Set to false to skip the final step of loading data to the production database.
-# Useful for local testing of the transformation logic or when using local DB
-run_load_script = false
+# Determines if the script that posts historical PBs to Discord should run.
+run_post_pbs_script = true
 
 #-----------------------------------------------------------------------
 # Log and Summary Cleanup Settings
 #-----------------------------------------------------------------------
+# Automatically deletes old log and summary files.
 [cleanup_settings]
 # Number of days to keep log and summary files. Set to 0 to disable cleanup.
-log_retention_days = 3
-
-#-----------------------------------------------------------------------
-# Load Settings
-#-----------------------------------------------------------------------
-[load_settings]
-# This suffix is appended to table names during the loading phase of an online database.
-staging_suffix = "_staging"
+log_retention_days = 30
 
 #-----------------------------------------------------------------------
 # File Path Settings
 #-----------------------------------------------------------------------
+# These files contain historical records and dashboard configuration settings.
+# They are located in the 'src' directory.
 [historical_data]
-# Paths are relative to the 'src' directory
-collection_log_file = "historical_collection_logs.toml"
 personal_bests_file = "historical_personal_bests.toml"
+collection_log_file = "historical_collection_logs.toml"
 
 #-----------------------------------------------------------------------
 # fetch days Settings
 #-----------------------------------------------------------------------
+# Controls the time range for fetching new data from Discord.
 [time_settings]
-# Mode can be "automatic" or "custom".
-mode = "automatic"
-# In automatic mode, how many minutes before the current time should the script stop fetching?
-end_time_offset_minutes = 1
-# In automatic mode, how many extra minutes should the script go back from the last run?
+# 'auto' mode fetches data since the last run.
+# 'custom' mode uses the fixed dates below.
+mode = "auto"
+
+# In 'auto' mode, how many minutes to overlap with the previous run to avoid missing messages.
 start_time_overlap_minutes = 10
-# On the very first automatic run, how many days back should the script fetch?
-max_lookback_days = 30
+# In 'auto' mode, how many minutes to wait before fetching to ensure messages are fully processed by Discord.
+end_time_offset_minutes = 1
+# In 'auto' mode, if no previous data exists, how many days back to fetch.
+max_lookback_days = 90
 
 [custom_time_range]
-# These values are ONLY used if mode is set to "custom".
-# Format: "YYYY-MM-DD HH:MM"
-custom_start_date = "2025-04-09 14:00"
-custom_end_date = "2025-08-09 16:00"
+# Only used if time_settings.mode is 'custom'. Format: "YYYY-MM-DD HH:MM"
+custom_start_date = "2023-01-01 00:00"
+custom_end_date = "2023-01-31 23:59"
 
 #-----------------------------------------------------------------------
 # Username Mapping Settings
@@ -77,7 +79,9 @@ custom_end_date = "2025-08-09 16:00"
 #   - If only end_date is given, it applies until that date.
 #   - If both are given, it applies within that specific range.
 #   - If neither is given, it applies to all time.
-#   - If name mapping rules overlap the rule appearing last takes precedence.
+#
+# IMPORTANT: If mapping rules overlap for the same source username, the rule that appears
+# LATER in this list will take precedence.
 
 [username_mapping]
 rules = [
@@ -94,8 +98,9 @@ rules = [
   # { target_username = "TempUser", source_usernames = ["MainUser"], start_date = "2025-06-01 00:00", end_date = "2025-06-15 00:00" }
 
   # Rule start
-]
+  { target_username = "zezima", source_usernames = ["old zezima"] },
 
+]
 
 #-----------------------------------------------------------------------
 # Item Value Overrides
@@ -138,33 +143,41 @@ rules = [
 "Masori chaps" = 25_080_000
 "Tumeken's shadow (uncharged)" = 1_031_620_000
 
+# idiots getting lured for max cash
+# didnt feel like editing the code so creates an item to attach to it
+# This will probably cause issues down the line, future issue, good for now!
+"an extraordinary amount of loot" = 2_147_483_647
+
+
 #-----------------------------------------------------------------------
 # Parse settings
 #-----------------------------------------------------------------------
+# Controls how the parsing script operates.
 [parse_settings]
-# "new" - Parses only new raw logs and re-attempts previously unparsed ones. (Faster, for daily runs)
-# "all" - Clears all parsed tables and re-parses everything from scratch. (Slower, for when regex is updated)
+# 'new' mode processes only new and previously unparsed logs.
+# 'all' mode clears all parsed data and re-processes everything from the raw logs.
 mode = "new"
-
 # parse definitions located further down
+
 
 #-----------------------------------------------------------------------
 # Transform Setttings
 #-----------------------------------------------------------------------
+# --- Dashboard Settings ---
+# These settings control the data transformations for the dashboard.
 [dashboard_settings]
 week_start_day = "Monday"
 custom_lookback_days = 14
-other_group_name = "Miscellaneous"
-top_drops_limit = 50 
+top_drops_limit = 50
+
 
 [dashboard_settings.collection_log]
 source_types = ["Collection Log", "Valuable Drop", "Raid Loot", "Clue Scroll Item"]
 deduplication_type = "Collection Log"
-other_group_name = "Miscellaneous"
+
 
 [dashboard_settings.personal_bests]
 broadcast_type = "Personal Best"
-report_name = "personal_bests_summary"
 # How close in seconds two times must be to be considered identical (e.g., 0.6 for 59.4s and 1:00.0)
 pb_time_similarity_threshold_seconds = 0.6
 # How close in time (seconds) two identical PBs must be to be grouped as a single record.
@@ -174,48 +187,46 @@ pb_grouping_window_seconds = 15
 allow_multiple_holders_on_match = false
 
 [dashboard_settings.recent_achievements]
-source_types = ["Level Up", "Quest", "Diary", "Combat Task", "Combat Achievement Tier", "Pet"]
-limit = 15
+source_types = ["Level Up", "Quest", "Diary", "Combat Task", "Combat Achievement Tier", "Pet", "HC Life Lost"]
+limit_per_type = 15
 
 # --- Generic Leaderboard Reports ---
 # Used for creating summary tables with counts and values per player.
+# The aggregations can be defined as an inline table for readability.
 [[dashboard_settings.leaderboard_reports]]
 report_name = "valuable_drops_summary"
 source_table = "clan_broadcasts"
 broadcast_type = "Valuable Drop"
 group_by_column = "Username"
-aggregations.Count = "Username"
-aggregations.Value = "Item_Value"
+aggregations = { Count = "Username", Value = "Item_Value" }
 
 [[dashboard_settings.leaderboard_reports]]
 report_name = "pvp_kills_summary"
 source_table = "clan_broadcasts"
 broadcast_type = "PvP Kill"
 group_by_column = "Username"
-aggregations.Count = "Username"
-aggregations.Value = "Item_Value"
+aggregations = { Count = "Username", Value = "Item_Value" }
 
 [[dashboard_settings.leaderboard_reports]]
 report_name = "pvp_deaths_summary"
 source_table = "clan_broadcasts"
 broadcast_type = "PvP Death"
 group_by_column = "Username"
-aggregations.Count = "Username"
-aggregations.Value = "Item_Value"
+aggregations = { Count = "Username", Value = "Item_Value" }
 
 [[dashboard_settings.leaderboard_reports]]
 report_name = "kicked_by_player_summary"
 source_table = "clan_broadcasts"
 broadcast_type = "Clan Expelled"
 group_by_column = "Username"
-aggregations.Count = "Username"
+aggregations = { Count = "Username" }
 
 [[dashboard_settings.leaderboard_reports]]
 report_name = "kicker_summary"
 source_table = "clan_broadcasts"
 broadcast_type = "Clan Expelled"
 group_by_column = "Action_By"
-aggregations.Count = "Action_By"
+aggregations = { Count = "Action_By" }
 
 [[dashboard_settings.leaderboard_reports]]
 report_name = "stolen_whips_summary"
@@ -223,15 +234,28 @@ source_table = "clan_broadcasts"
 broadcast_type = "Valuable Drop"
 item_name_filter = "Abyssal whip"
 group_by_column = "Username"
-aggregations.Count = "Username"
-aggregations.Value = "Item_Value"
+aggregations = { Count = "Username", Value = "Item_Value" }
+
+[[dashboard_settings.leaderboard_reports]]
+report_name = "menaces_111_summary"
+source_table = "chat"
+search_phrases = ["111"]
+group_by_column = "Username"
+aggregations = { Count = "Content" }
 
 [[dashboard_settings.leaderboard_reports]]
 report_name = "big_gzers_summary"
 source_table = "chat"
 search_phrases = ["gz", "grats", "gratz"]
 group_by_column = "Username"
-aggregations.Count = "Content"
+aggregations = { Count = "Content" }
+
+[[dashboard_settings.leaderboard_reports]]
+report_name = "cya_hick_crew_summary"
+source_table = "chat"
+search_phrases = ["cya hick"]
+group_by_column = "Username"
+aggregations = { Count = "Content" }
 
 
 # --- Detailed History Reports ---
@@ -275,6 +299,7 @@ raw_db_uri = "sqlite:///data/raw_data.db"
 parsed_db_uri = "sqlite:///data/parsed_data.db"
 optimised_db_uri = "sqlite:///data/optimised_data.db"
 
+
 #-----------------------------------------------------------------------
 # Database Schema Definition
 #-----------------------------------------------------------------------
@@ -284,6 +309,7 @@ optimised_db_uri = "sqlite:///data/optimised_data.db"
 clan_broadcasts = { raw_log_id = "INTEGER", Timestamp = "TEXT", Content = "TEXT", Username = "TEXT", Broadcast_Type = "TEXT", Item_Name = "TEXT", Item_Value = "BIGINT", Collection_Log_Progress = "TEXT", Skill = "TEXT", Task_Name = "TEXT", New_Level = "INTEGER", Tier = "TEXT", PB_Time = "TEXT", Source_Mob = "TEXT", Opponent = "TEXT", Pet_Name = "TEXT", Pet_KC = "INTEGER", Pet_KC_Type = "TEXT", Action_By = "TEXT", New_Group_Lives = "TEXT" }
 chat = { raw_log_id = "INTEGER", Timestamp = "TEXT", MessageType = "TEXT", Rank = "TEXT", Status = "TEXT", Username = "TEXT", Content = "TEXT" }
 unparsed_logs = { raw_log_id = "INTEGER", timestamp = "TEXT", raw_content = "TEXT", failure_reason = "TEXT" }
+
 
 #-----------------------------------------------------------------------
 # Message Parsing Patterns
@@ -332,7 +358,8 @@ variants = [
     { regex = '''^(?:<:\w+:\d+>){0,2}\s*(.+?)\s+feels something weird.*?:\s+(.*?)\s+at\s+([\d,]+)\s+([\w\s]+)\.$''', columns = ["Username", "Pet_Name", "Pet_KC", "Pet_KC_Type"], required_columns = ["Username", "Pet_Name", "Pet_KC", "Pet_KC_Type"] },
 	{ regex = '''^(?:<:\w+:\d+>){0,2}\s*(.+?)\s+has a funny feeling.*?:\s+(.*?)\s+at\s+([\d,]+)\s+([\w\s]+?)\s+\(.*$''', columns = ["Username", "Pet_Name", "Pet_KC", "Pet_KC_Type"], required_columns = ["Username", "Pet_Name", "Pet_KC", "Pet_KC_Type"] },
     { regex = '''^(?:<:\w+:\d+>){0,2}\s*(.+?)\s+feels like (?:.*?) acquired something special:\s*(.+)$''', columns = ["Username", "Pet_Name"], required_columns = ["Username", "Pet_Name"] },
-    { regex = '''^(?:<:\w+:\d+>){0,2}\s*(.+?)\s+has a funny feeling like \S+ being followed:\s+(.*?)\.?$''', columns = ["Username", "Pet_Name"], required_columns = ["Username", "Pet_Name"] }
+    { regex = '''^(?:<:\w+:\d+>){0,2}\s*(.+?)\s+has a funny feeling like \S+ being followed:\s+(.*?)\.?$''', columns = ["Username", "Pet_Name"], required_columns = ["Username", "Pet_Name"] },
+    { regex = '''^(?:<:\w+:\d+>){0,2}\s*(.+?)\s+has a funny feeling like \S+ would have been followed:\s+(.*?)\.?$''', columns = ["Username", "Pet_Name"], required_columns = ["Username", "Pet_Name"] },
 ]
 
 [patterns.level_up]
@@ -392,6 +419,7 @@ variants = [
     { regex = '''^(?:<:\w+:\d+>){0,2}\s*(.+?)\s+has been defeated by (.*?) in The Wilderness(.*)$''', columns = ["Username", "Opponent", "_"], required_columns = ["Username", "Opponent"] },
     { regex = '''^(?:<:\w+:\d+>){0,2}\s*(.+?)\s+has been defeated by (.*?) and lost \((\d{1,3}(?:,\d{3})*|\d+) coins\) worth of loot\.$''', columns = ["Username", "Opponent", "Item_Value"], required_columns = ["Username", "Opponent", "Item_Value"] },
     { regex = '''^(?:<:\w+:\d+>){0,2}\s*(.+?)\s+has been defeated by (.*?) and lost (an extraordinary amount of loot)\.$''', columns = ["Username", "Opponent", "Item_Name"], required_columns = ["Username", "Opponent", "Item_Name"] },
+    { regex = '''^(?:<:\w+:\d+>){0,2}\s*(.+?)\s+has been defeated by (.*?)\.$''', columns = ["Username", "Opponent"], required_columns = ["Username", "Opponent"] },
 ]
 
 [patterns.combat_achievement_tier]
@@ -418,20 +446,31 @@ variants = [
     { regex = '''^(.+?)\s+has left the clan\.?$''', columns = ["Username"], required_columns = ["Username"] }
 ]
 
-[patterns.hcgim_life_lost]
-broadcast_type = "HCGIM Life Lost"
+[patterns.hc_life_lost]
+broadcast_type = "HC Life Lost"
 variants = [
-    { regex = '''^(.+?)\s+has died and lost a life\. (.*?) group has .*?(\d+/\d+) lives left\.$''', columns = ["Username", "_", "New_Group_Lives"], required_columns = ["Username", "New_Group_Lives"] }
+    { regex = '''^(.+?)\s+has died and lost a life\. (.*?) group has .*?(\d+/\d+) lives left\.$''', columns = ["Username", "_", "New_Group_Lives"], required_columns = ["Username", "New_Group_Lives"] },
+    { regex = '''^(.+?)\s+has died and lost their Hardcore Ironman status\.$''', columns = ["Username"], required_columns = ["Username"] },
 ]
 
 [patterns.clan_coffer_deposit]
 broadcast_type = "Clan Coffer Deposit"
 variants = [
-    { regex = '''^(.+?)\s+has deposited ([\d,]+) coins into the coffer\.$''', columns = ["Username", "Item_Value"], required_columns = ["Username", "Item_Value"] }
+    { regex = '''^(.+?)\s+has deposited ([\d,]+) coins into the coffer\.$''', columns = ["Username", "Item_Value"], required_columns = ["Username", "Item_Value"] },
 ]
 
 [patterns.clan_coffer_withdraw]
 broadcast_type = "Clan Coffer Withdraw"
 variants = [
     { regex = '''^(.+?)\s+has withdrawn ([\d,]+) coins from the coffer\.$''', columns = ["Username", "Item_Value"], required_columns = ["Username", "Item_Value"] }
+]
+
+# Bin grouop for tossing out lines 
+[patterns.bin]
+broadcast_type = "Bin"
+variants = [
+    { regex = '''^(.+?)\s+received an item: Infernal cape$''', columns = ["Username"], required_columns = ["Username"] },
+    { regex = '''^(.+?)\s+has deposited one coin into the coffer\.$''', columns = ["Username"], required_columns = ["Username"] },
+    { regex = '''^<@728615641245941770>$''', columns = [], required_columns = [] },
+    { regex = '''^<@192497559581884416> ?''', columns = [], required_columns = [] },
 ]

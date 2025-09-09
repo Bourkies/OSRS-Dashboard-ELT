@@ -1,7 +1,7 @@
 @echo off
-REM This script runs the OSRS Clan Reporter
+REM This script runs the raw log parser (2_parse_engine.py).
 
-echo Running OSRS Clan Reporter...
+echo Running 2_parse_engine.py...
 echo.
 
 REM Execute the python script located in the src folder

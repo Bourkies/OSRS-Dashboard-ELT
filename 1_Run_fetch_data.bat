@@ -1,7 +1,7 @@
 @echo off
-REM This script runs the OSRS Clan Reporter
+REM This script runs the Discord data fetcher (1_fetch_data.py).
 
-echo Running OSRS Clan Reporter...
+echo Running 1_fetch_data.py...
 echo.
 
 REM Execute the python script located in the src folder

@@ -6,7 +6,7 @@
 
 # --- Settings ---
 # Defines the name for the group that catches any items not listed in the groups below.
-other_group_name = "Miscellaneous anyone want to sort this out?....."
+other_group_name = "Miscellaneous unsorted"
 # Default sorting for the dashboard. Options: "config", "alphabetical"
 default_group_sort = "config"
 default_item_sort = "config" # Sorts items by the order they appear below
@@ -18,19 +18,2341 @@ exclude_rules = [
     ["monkfish"]
 ]
 
+# --- Initial Counts ---
+# This section sets the starting count for items. These are combined with any
+# new drops found in the database. An item only needs to be listed here if it
+# has a historical count.
+initial_counts = [
+    { name = "3rd age amulet", count = 0 },
+    { name = "3rd age axe", count = 0 },
+    { name = "3rd age bow", count = 0 },
+    { name = "3rd age cloak", count = 0 },
+]
 
 # --- Item Groups ---
 # Groups will be displayed on the dashboard in the order they appear here.
 # Items will be displayed in the order they appear if default_item_sort is "config".
 [[groups]]
-title = "🏹 Chambers of Xeric 🏹"
+title = "🐙 Abyssal Sire 🐙"
 items = [
-    { name = "Twisted bow", count = 1 },
-    { name = "Kodai insignia", count = 1 }
+    "Abyssal dagger",
+    "Abyssal head",
+    "Abyssal orphan",
+    "Abyssal whip",
+    "Bludgeon axon",
+    "Bludgeon claw",
+    "Bludgeon spine",
+    "Jar of miasma",
+    "Unsired",
 ]
 
 [[groups]]
-title = "🧛 Theatre of Blood 🧛"
+title = "🐲 Alchemical Hydra 🐲"
 items = [
-    { name = "Scythe of vitur (uncharged)", count = 1 }
+    "Alchemical hydra heads",
+    "Dragon knife",
+    "Dragon thrownaxe",
+    "Hydra leather",
+    "Hydra tail",
+    "Hydra's claw",
+    "Hydra's eye",
+    "Hydra's fang",
+    "Hydra's heart",
+    "Ikkle hydra",
+    "Jar of chemicals",
+]
+
+[[groups]]
+title = "💀 Barrows Chests 💀"
+items = [
+    "Ahrim's hood",
+    "Ahrim's robeskirt",
+    "Ahrim's robetop",
+    "Ahrim's staff",
+    "Bolt rack",
+    "Dharok's greataxe",
+    "Dharok's helm",
+    "Dharok's platebody",
+    "Dharok's platelegs",
+    "Guthan's chainskirt",
+    "Guthan's helm",
+    "Guthan's platebody",
+    "Guthan's warspear",
+    "Karil's coif",
+    "Karil's crossbow",
+    "Karil's leatherskirt",
+    "Karil's leathertop",
+    "Torag's hammers",
+    "Torag's helm",
+    "Torag's platebody",
+    "Torag's platelegs",
+    "Verac's brassard",
+    "Verac's flail",
+    "Verac's helm",
+    "Verac's plateskirt",
+]
+
+[[groups]]
+title = "🌳 Bryophyta 🌳"
+items = [
+    "Bryophyta's essence",
+]
+
+[[groups]]
+title = "🐶 Cerberus 🐶"
+items = [
+    "Eternal crystal",
+    "Hellpuppy",
+    "Jar of souls",
+    "Key master teleport",
+    "Pegasian crystal",
+    "Primordial crystal",
+    "Smouldering stone",
+]
+
+[[groups]]
+title = "🦎 Chambers of Xeric 🦎"
+items = [
+    "Ancestral hat",
+    "Ancestral robe bottom",
+    "Ancestral robe top",
+    "Arcane prayer scroll",
+    "Dark relic",
+    "Dexterous prayer scroll",
+    "Dinh's bulwark",
+    "Dragon claws",
+    "Dragon hunter crossbow",
+    "Elder maul",
+    "Kodai insignia",
+    "Metamorphic dust",
+    "Olmlet",
+    "Onyx",
+    "Torn prayer scroll",
+    "Twisted ancestral colour kit",
+    "Twisted bow",
+    "Twisted buckler",
+    "Xeric's champion",
+    "Xeric's general",
+    "Xeric's guard",
+    "Xeric's sentinel",
+    "Xeric's warrior",
+]
+
+[[groups]]
+title = "🌪️ Chaos Elemental 🌪️"
+items = [
+    "Dragon 2h sword",
+    "Dragon pickaxe",
+    "Pet chaos elemental",
+]
+
+[[groups]]
+title = "🔥 Chaos Fanatic 🔥"
+items = [
+    "Malediction shard 1",
+    "Odium shard 1",
+    "Pet chaos elemental",
+]
+
+[[groups]]
+title = "⚔️ Commander Zilyana ⚔️"
+items = [
+    "Armadyl crossbow",
+    "Godsword shard 1",
+    "Godsword shard 2",
+    "Godsword shard 3",
+    "Pet zilyana",
+    "Saradomin hilt",
+    "Saradomin sword",
+    "Saradomin's light",
+]
+
+[[groups]]
+title = "👻 Corporeal Beast 👻"
+items = [
+    "Arcane sigil",
+    "Elysian sigil",
+    "Holy elixir",
+    "Jar of spirits",
+    "Pet dark core",
+    "Spectral sigil",
+    "Spirit shield",
+]
+
+[[groups]]
+title = "🏺 Crazy Archaeologist 🏺"
+items = [
+    "Fedora",
+    "Malediction shard 2",
+    "Odium shard 2",
+]
+
+[[groups]]
+title = "🩸 Duke Sucellus 🩸"
+items = [
+    "Awakener's orb",
+    "Baron",
+    "Chromium ingot",
+    "Eye of the duke",
+    "Frozen tablet",
+    "Ice quartz",
+    "Magus vestige",
+    "Virtus mask",
+    "Virtus robe bottom",
+    "Virtus robe top",
+]
+
+[[groups]]
+title = "🦍 General Graardor 🦍"
+items = [
+    "Bandos boots",
+    "Bandos chestplate",
+    "Bandos hilt",
+    "Bandos tassets",
+    "Godsword shard 1",
+    "Godsword shard 2",
+    "Godsword shard 3",
+    "Pet general graardor",
+]
+
+[[groups]]
+title = "⛏️ Giant Mole ⛏️"
+items = [
+    "Baby mole",
+    "Mole claw",
+    "Mole skin",
+]
+
+[[groups]]
+title = "🦇 Grotesque Guardians 🦇"
+items = [
+    "Black tourmaline core",
+    "Granite dust",
+    "Granite gloves",
+    "Granite hammer",
+    "Granite ring",
+    "Jar of stone",
+    "Noon",
+]
+
+[[groups]]
+title = "🌱 Hespori 🌱"
+items = [
+    "Attas seed",
+    "Bottomless compost bucket",
+    "Iasor seed",
+    "Kronos seed",
+]
+
+[[groups]]
+title = "🐜 Kalphite Queen 🐜"
+items = [
+    "Dragon 2h sword",
+    "Dragon chainbody",
+    "Dragon pickaxe",
+    "Jar of sand",
+    "Kalphite princess",
+    "Kq head",
+]
+
+[[groups]]
+title = "🐉 King Black Dragon 🐉"
+items = [
+    "Draconic visage",
+    "Dragon pickaxe",
+    "Kbd heads",
+    "Prince black dragon",
+]
+
+[[groups]]
+title = "🦑 Kraken 🦑"
+items = [
+    "Jar of dirt",
+    "Kraken tentacle",
+    "Pet kraken",
+    "Trident of the seas (full)",
+]
+
+[[groups]]
+title = "🦅 Kree'arra 🦅"
+items = [
+    "Armadyl chainskirt",
+    "Armadyl chestplate",
+    "Armadyl helmet",
+    "Armadyl hilt",
+    "Godsword shard 1",
+    "Godsword shard 2",
+    "Godsword shard 3",
+    "Pet kree'arra",
+]
+
+[[groups]]
+title = "👿 K'ril Tsutsaroth 👿"
+items = [
+    "Godsword shard 1",
+    "Godsword shard 2",
+    "Godsword shard 3",
+    "Pet k'ril tsutsaroth",
+    "Staff of the dead",
+    "Steam battlestaff",
+    "Zamorak hilt",
+    "Zamorakian spear",
+]
+
+[[groups]]
+title = "❄️ Nex ❄️"
+items = [
+    "Ancient hilt",
+    "Nexling",
+    "Nihil horn",
+    "Nihil shard",
+    "Torva full helm (damaged)",
+    "Torva platebody (damaged)",
+    "Torva platelegs (damaged)",
+    "Zaryte vambraces",
+]
+
+[[groups]]
+title = "👹 Obor 👹"
+items = [
+    "Hill giant club",
+]
+
+[[groups]]
+title = "👻 Phantom Muspah 👻"
+items = [
+    "Ancient essence",
+    "Ancient icon",
+    "Charged ice",
+    "Frozen cache",
+    "Muphin",
+    "Venator shard",
+]
+
+[[groups]]
+title = "🕷️ Sarachnis 🕷️"
+items = [
+    "Giant egg sac(full)",
+    "Jar of eyes",
+    "Sarachnis cudgel",
+    "Sraracha",
+]
+
+[[groups]]
+title = "🦂 Scorpia 🦂"
+items = [
+    "Dragon 2h sword",
+    "Malediction shard 3",
+    "Odium shard 3",
+    "Scorpia's offspring",
+]
+
+[[groups]]
+title = "🐀 Scurrius 🐀"
+items = [
+    "Scurrius' spine",
+    "Scurry",
+]
+
+[[groups]]
+title = "🌑 Skotizo 🌑"
+items = [
+    "Ancient shard",
+    "Dark claw",
+    "Dark totem",
+    "Jar of darkness",
+    "Skotos",
+    "Uncut onyx",
+]
+
+[[groups]]
+title = "🌊 Tempoross 🌊"
+items = [
+    "Big harpoonfish",
+    "Dragon harpoon",
+    "Fish barrel",
+    "Soaked page",
+    "Spirit angler boots",
+    "Spirit angler headband",
+    "Spirit angler top",
+    "Spirit angler waders",
+    "Spirit flakes",
+    "Tackle box",
+    "Tiny tempor",
+    "Tome of water (empty)",
+]
+
+[[groups]]
+title = "💎 The Gauntlet 💎"
+items = [
+    "Crystal armour seed",
+    "Crystal weapon seed",
+    "Enhanced crystal weapon seed",
+    "Gauntlet cape",
+    "Youngllef",
+]
+
+[[groups]]
+title = "🌊 The Leviathan 🌊"
+items = [
+    "Awakener's orb",
+    "Chromium ingot",
+    "Leviathan's lure",
+    "Lil'viathan",
+    "Scarred tablet",
+    "Smoke quartz",
+    "Venator vestige",
+    "Virtus mask",
+    "Virtus robe bottom",
+    "Virtus robe top",
+]
+
+[[groups]]
+title = "🤫 The Whisperer 🤫"
+items = [
+    "Awakener's orb",
+    "Bellator vestige",
+    "Chromium ingot",
+    "Shadow quartz",
+    "Siren's staff",
+    "Sirenic tablet",
+    "Virtus mask",
+    "Virtus robe bottom",
+    "Virtus robe top",
+    "Wisp",
+]
+
+[[groups]]
+title = "🩸 Theatre of Blood 🩸"
+items = [
+    "Avernic defender hilt",
+    "Ghrazi rapier",
+    "Holy ornament kit",
+    "Justiciar chestguard",
+    "Justiciar faceguard",
+    "Justiciar legguards",
+    "Lil' zik",
+    "Sanguine dust",
+    "Sanguine ornament kit",
+    "Sanguinesti staff (uncharged)",
+    "Scythe of vitur (uncharged)",
+    "Sinhaza shroud tier 1",
+    "Sinhaza shroud tier 2",
+    "Sinhaza shroud tier 3",
+    "Sinhaza shroud tier 4",
+    "Sinhaza shroud tier 5",
+    "Vial of blood",
+]
+
+[[groups]]
+title = "💨 Thermonuclear Smoke Devil 💨"
+items = [
+    "Dragon chainbody",
+    "Jar of smoke",
+    "Occult necklace",
+    "Pet smoke devil",
+    "Smoke battlestaff",
+]
+
+[[groups]]
+title = "🏜️ Tombs of Amascut 🏜️"
+items = [
+    "Ancient remnant",
+    "Breach of the scarab",
+    "Cache of runes",
+    "Cursed phalanx",
+    "Elidinis' ward",
+    "Eye of the corruptor",
+    "Icthlarin's shroud (tier 1)",
+    "Icthlarin's shroud (tier 2)",
+    "Icthlarin's shroud (tier 3)",
+    "Icthlarin's shroud (tier 4)",
+    "Icthlarin's shroud (tier 5)",
+    "Jewel of amascut",
+    "Jewel of the sun",
+    "Lightbearer",
+    "Masori body",
+    "Masori chaps",
+    "Masori crafting kit",
+    "Masori mask",
+    "Menaphite ornament kit",
+    "Osmumten's fang",
+    "Remnant of akkha",
+    "Remnant of ba-ba",
+    "Remnant of kephri",
+    "Remnant of zebak",
+    "Thread of elidinis",
+    "Tumeken's guardian",
+    "Tumeken's shadow (uncharged)",
+]
+
+[[groups]]
+title = "🪓 Vardorvis 🪓"
+items = [
+    "Awakener's orb",
+    "Blood quartz",
+    "Butch",
+    "Chromium ingot",
+    "Executioner's axe head",
+    "Strangled tablet",
+    "Ultor vestige",
+    "Virtus mask",
+    "Virtus robe bottom",
+    "Virtus robe top",
+]
+
+[[groups]]
+title = "🐲 Vorkath 🐲"
+items = [
+    "Draconic visage",
+    "Dragonbone necklace",
+    "Jar of decay",
+    "Skeletal visage",
+    "Vorkath's head",
+    "Vorki",
+]
+
+[[groups]]
+title = "🥶 Wintertodt 🥶"
+items = [
+    "Bruma torch",
+    "Burnt page",
+    "Dragon axe",
+    "Phoenix",
+    "Pyromancer boots",
+    "Pyromancer garb",
+    "Pyromancer hood",
+    "Pyromancer robe",
+    "Tome of fire (empty)",
+    "Warm gloves",
+]
+
+[[groups]]
+title = "🗿 Zalcano 🗿"
+items = [
+    "Crystal tool seed",
+    "Smolcano",
+    "Uncut onyx",
+    "Zalcano shard",
+]
+
+[[groups]]
+title = "🐍 Zulrah 🐍"
+items = [
+    "Jar of swamp",
+    "Magic fang",
+    "Magma mutagen",
+    "Pet snakeling",
+    "Serpentine visage",
+    "Tanzanite fang",
+    "Tanzanite mutagen",
+    "Uncut onyx",
+    "Zul-andra teleport",
+    "Zulrah's scales",
+]
+
+[[groups]]
+title = "Aerial Fishing"
+items = [
+    "Angler boots",
+    "Angler hat",
+    "Angler top",
+    "Angler waders",
+    "Fish sack",
+    "Golden tench",
+    "Pearl barbarian rod",
+    "Pearl fishing rod",
+    "Pearl fly fishing rod",
+]
+
+[[groups]]
+title = "All Pets"
+items = [
+    "Abyssal orphan",
+    "Abyssal protector",
+    "Baby chinchompa (grey)",
+    "Baby mole",
+    "Baron",
+    "Beaver",
+    "Bloodhound",
+    "Bran",
+    "Butch",
+    "Callisto cub",
+    "Chompy chick",
+    "Giant squirrel",
+    "Hellpuppy",
+    "Herbi",
+    "Heron",
+    "Huberte",
+    "Ikkle hydra",
+    "Jal-nib-rek",
+    "Kalphite princess",
+    "Lil' creator",
+    "Lil' zik",
+    "Lil'viathan",
+    "Little nightmare",
+    "Moxi",
+    "Muphin",
+    "Nexling",
+    "Nid",
+    "Noon",
+    "Olmlet",
+    "Pet chaos elemental",
+    "Pet dagannoth prime",
+    "Pet dagannoth rex",
+    "Pet dagannoth supreme",
+    "Pet dark core",
+    "Pet general graardor",
+    "Pet k'ril tsutsaroth",
+    "Pet kraken",
+    "Pet kree'arra",
+    "Pet penance queen",
+    "Pet smoke devil",
+    "Pet snakeling",
+    "Pet zilyana",
+    "Phoenix",
+    "Prince black dragon",
+    "Quetzin",
+    "Rift guardian (fire)",
+    "Rock golem",
+    "Rocky",
+    "Scorpia's offspring",
+    "Scurry",
+    "Skotos",
+    "Smol heredit",
+    "Smolcano",
+    "Sraracha",
+    "Tangleroot",
+    "Tiny tempor",
+    "Tumeken's guardian",
+    "Tzrek-jad",
+    "Venenatis spiderling",
+    "Vet'ion jr.",
+    "Vorki",
+    "Wisp",
+    "Yami",
+    "Youngllef",
+]
+
+[[groups]]
+title = "Amoxliatl"
+items = [
+    "Frozen tear",
+    "Glacial temotli",
+    "Moxi",
+    "Pendant of ates (inert)",
+]
+
+[[groups]]
+title = "Araxxor"
+items = [
+    "Araxyte fang",
+    "Araxyte head",
+    "Araxyte venom sack",
+    "Coagulated venom",
+    "Jar of venom",
+    "Nid",
+    "Noxious blade",
+    "Noxious point",
+    "Noxious pommel",
+    "Spider cave teleport",
+]
+
+[[groups]]
+title = "Barbarian Assault"
+items = [
+    "Fighter hat",
+    "Fighter torso",
+    "Granite body",
+    "Granite helm",
+    "Healer hat",
+    "Penance gloves",
+    "Penance skirt",
+    "Pet penance queen",
+    "Ranger hat",
+    "Runner boots",
+    "Runner hat",
+]
+
+[[groups]]
+title = "Beginner Treasure Trails"
+items = [
+    "Amulet of defence (t)",
+    "Bear feet",
+    "Black pickaxe",
+    "Demon feet",
+    "Frog slippers",
+    "Jester cape",
+    "Mole slippers",
+    "Monk's robe (t)",
+    "Monk's robe top (t)",
+    "Rune scimitar ornament kit (guthix)",
+    "Rune scimitar ornament kit (saradomin)",
+    "Rune scimitar ornament kit (zamorak)",
+    "Sandwich lady bottom",
+    "Sandwich lady hat",
+    "Sandwich lady top",
+    "Shoulder parrot",
+]
+
+[[groups]]
+title = "Brimhaven Agility Arena"
+items = [
+    "Agility arena ticket",
+    "Brimhaven voucher",
+    "Graceful boots (Agility Arena)",
+    "Graceful cape (Agility Arena)",
+    "Graceful gloves (Agility Arena)",
+    "Graceful hood (Agility Arena)",
+    "Graceful legs (Agility Arena)",
+    "Graceful top (Agility Arena)",
+    "Pirate's hook",
+]
+
+[[groups]]
+title = "Callisto and Artio"
+items = [
+    "Callisto cub",
+    "Claws of callisto",
+    "Dragon 2h sword",
+    "Dragon pickaxe",
+    "Tyrannical ring",
+    "Voidwaker hilt",
+]
+
+[[groups]]
+title = "Camdozaal"
+items = [
+    "Ancient astroscope",
+    "Ancient carcanet",
+    "Ancient globe",
+    "Ancient ledger",
+    "Ancient treatise",
+    "Barronite guard",
+    "Barronite handle",
+    "Barronite head",
+    "Barronite mace",
+    "Imcando hammer",
+]
+
+[[groups]]
+title = "Castle Wars"
+items = [
+    "Castlewars cloak (Saradomin)",
+    "Castlewars cloak (Zamorak)",
+    "Castlewars hood (Saradomin)",
+    "Castlewars hood (Zamorak)",
+    "Decorative armour (gold platebody)",
+    "Decorative armour (gold platelegs)",
+    "Decorative armour (gold plateskirt)",
+    "Decorative armour (magic hat)",
+    "Decorative armour (magic legs)",
+    "Decorative armour (magic top)",
+    "Decorative armour (quiver)",
+    "Decorative armour (ranged legs)",
+    "Decorative armour (ranged top)",
+    "Decorative armour (red platebody)",
+    "Decorative armour (red platelegs)",
+    "Decorative armour (red plateskirt)",
+    "Decorative armour (white platebody)",
+    "Decorative armour (white platelegs)",
+    "Decorative armour (white plateskirt)",
+    "Decorative boots (gold)",
+    "Decorative boots (red)",
+    "Decorative boots (white)",
+    "Decorative full helm (gold)",
+    "Decorative full helm (red)",
+    "Decorative full helm (white)",
+    "Decorative helm (gold)",
+    "Decorative helm (red)",
+    "Decorative helm (white)",
+    "Decorative shield (gold)",
+    "Decorative shield (red)",
+    "Decorative shield (white)",
+    "Decorative sword (gold)",
+    "Decorative sword (red)",
+    "Decorative sword (white)",
+    "Guthix halo",
+    "Saradomin banner",
+    "Saradomin halo",
+    "Zamorak banner",
+    "Zamorak halo",
+]
+
+[[groups]]
+title = "Champion's Challenge"
+items = [
+    "Champion's cape",
+    "Earth warrior champion scroll",
+    "Ghoul champion scroll",
+    "Giant champion scroll",
+    "Goblin champion scroll",
+    "Hobgoblin champion scroll",
+    "Imp champion scroll",
+    "Jogre champion scroll",
+    "Lesser demon champion scroll",
+    "Skeleton champion scroll",
+    "Zombie champion scroll",
+]
+
+[[groups]]
+title = "Chompy Bird Hunting"
+items = [
+    "Chompy bird hat (bowman)",
+    "Chompy bird hat (bowmaster)",
+    "Chompy bird hat (dragon archer)",
+    "Chompy bird hat (expert dragon archer)",
+    "Chompy bird hat (expert ogre dragon archer)",
+    "Chompy bird hat (expert)",
+    "Chompy bird hat (forester)",
+    "Chompy bird hat (marksman)",
+    "Chompy bird hat (ogre bowman)",
+    "Chompy bird hat (ogre bowmaster)",
+    "Chompy bird hat (ogre dragon archer)",
+    "Chompy bird hat (ogre expert)",
+    "Chompy bird hat (ogre forester)",
+    "Chompy bird hat (ogre marksman)",
+    "Chompy bird hat (ogre woodsman)",
+    "Chompy bird hat (ogre yeoman)",
+    "Chompy bird hat (woodsman)",
+    "Chompy bird hat (yeoman)",
+    "Chompy chick",
+]
+
+[[groups]]
+title = "Colossal Wyrm Agility"
+items = [
+    "Calcified acorn",
+    "Colossal wyrm teleport scroll",
+    "Graceful boots (Varlamore)",
+    "Graceful cape (Varlamore)",
+    "Graceful gloves (Varlamore)",
+    "Graceful hood (Varlamore)",
+    "Graceful legs (Varlamore)",
+    "Graceful top (Varlamore)",
+]
+
+[[groups]]
+title = "Creature Creation"
+items = [
+    "Black satchel",
+    "Gold satchel",
+    "Green satchel",
+    "Plain satchel",
+    "Red satchel",
+    "Rune satchel",
+    "Tea flask",
+]
+
+[[groups]]
+title = "Cyclopes"
+items = [
+    "Adamant defender",
+    "Black defender",
+    "Bronze defender",
+    "Dragon defender",
+    "Iron defender",
+    "Mithril defender",
+    "Rune defender",
+    "Steel defender",
+]
+
+[[groups]]
+title = "Dagannoth Kings"
+items = [
+    "Archers ring",
+    "Berserker ring",
+    "Dragon axe",
+    "Mud battlestaff",
+    "Pet dagannoth prime",
+    "Pet dagannoth rex",
+    "Pet dagannoth supreme",
+    "Seercull",
+    "Seers ring",
+    "Warrior ring",
+]
+
+[[groups]]
+title = "Deranged archaeologist"
+items = [
+    "Steel ring",
+]
+
+[[groups]]
+title = "Easy Treasure Trails"
+items = [
+    "A powdered wig",
+    "Amulet of magic (t)",
+    "Amulet of power (t)",
+    "Ancient robe legs",
+    "Ancient robe top",
+    "Armadyl robe legs",
+    "Armadyl robe top",
+    "Bandos robe legs",
+    "Bandos robe top",
+    "Beanie",
+    "Black beret",
+    "Black cane",
+    "Black full helm (g)",
+    "Black full helm (t)",
+    "Black helm (h1)",
+    "Black helm (h2)",
+    "Black helm (h3)",
+    "Black helm (h4)",
+    "Black helm (h5)",
+    "Black kiteshield (g)",
+    "Black kiteshield (t)",
+    "Black pickaxe",
+    "Black platebody (g)",
+    "Black platebody (h1)",
+    "Black platebody (h2)",
+    "Black platebody (h3)",
+    "Black platebody (h4)",
+    "Black platebody (h5)",
+    "Black platebody (t)",
+    "Black platelegs (g)",
+    "Black platelegs (t)",
+    "Black plateskirt (g)",
+    "Black plateskirt (t)",
+    "Black shield (h1)",
+    "Black shield (h2)",
+    "Black shield (h3)",
+    "Black shield (h4)",
+    "Black shield (h5)",
+    "Black skirt (g)",
+    "Black skirt (t)",
+    "Black wizard hat (g)",
+    "Black wizard hat (t)",
+    "Black wizard robe (g)",
+    "Black wizard robe (t)",
+    "Blue beret",
+    "Blue elegant blouse",
+    "Blue elegant legs",
+    "Blue elegant shirt",
+    "Blue elegant skirt",
+    "Blue skirt (g)",
+    "Blue skirt (t)",
+    "Blue wizard hat (g)",
+    "Blue wizard hat (t)",
+    "Blue wizard robe (g)",
+    "Blue wizard robe (t)",
+    "Bob's black shirt",
+    "Bob's blue shirt",
+    "Bob's green shirt",
+    "Bob's purple shirt",
+    "Bob's red shirt",
+    "Bronze full helm (g)",
+    "Bronze full helm (t)",
+    "Bronze kiteshield (g)",
+    "Bronze kiteshield (t)",
+    "Bronze platebody (g)",
+    "Bronze platebody (t)",
+    "Bronze platelegs (g)",
+    "Bronze platelegs (t)",
+    "Bronze plateskirt (g)",
+    "Bronze plateskirt (t)",
+    "Cape of skulls",
+    "Flared trousers",
+    "Goblin mask",
+    "Golden apron",
+    "Golden chef's hat",
+    "Green elegant blouse",
+    "Green elegant legs",
+    "Green elegant shirt",
+    "Green elegant skirt",
+    "Guthix robe legs",
+    "Guthix robe top",
+    "Ham joint",
+    "Highwayman mask",
+    "Imp mask",
+    "Iron full helm (g)",
+    "Iron full helm (t)",
+    "Iron kiteshield (g)",
+    "Iron kiteshield (t)",
+    "Iron platebody (g)",
+    "Iron platebody (t)",
+    "Iron platelegs (g)",
+    "Iron platelegs (t)",
+    "Iron plateskirt (g)",
+    "Iron plateskirt (t)",
+    "Leather body (g)",
+    "Leather chaps (g)",
+    "Monk's robe (g)",
+    "Monk's robe top (g)",
+    "Pantaloons",
+    "Rain bow",
+    "Red beret",
+    "Red elegant blouse",
+    "Red elegant legs",
+    "Red elegant shirt",
+    "Red elegant skirt",
+    "Saradomin robe legs",
+    "Saradomin robe top",
+    "Sleeping cap",
+    "Staff of bob the cat",
+    "Steel full helm (g)",
+    "Steel full helm (t)",
+    "Steel kiteshield (g)",
+    "Steel kiteshield (t)",
+    "Steel platebody (g)",
+    "Steel platebody (t)",
+    "Steel platelegs (g)",
+    "Steel platelegs (t)",
+    "Steel plateskirt (g)",
+    "Steel plateskirt (t)",
+    "Studded body (g)",
+    "Studded body (t)",
+    "Studded chaps (g)",
+    "Studded chaps (t)",
+    "Team cape i",
+    "Team cape x",
+    "Team cape zero",
+    "White beret",
+    "Willow comp bow",
+    "Wooden shield (g)",
+    "Zamorak robe legs",
+    "Zamorak robe top",
+]
+
+[[groups]]
+title = "Elder Chaos Druids"
+items = [
+    "Elder chaos hood",
+    "Elder chaos robe",
+    "Elder chaos top",
+]
+
+[[groups]]
+title = "Elite Treasure Trails"
+items = [
+    "Adamant dragon mask",
+    "Afro",
+    "Arceuus scarf",
+    "Big pirate hat",
+    "Black d'hide body (g)",
+    "Black d'hide body (t)",
+    "Black d'hide chaps (g)",
+    "Black d'hide chaps (t)",
+    "Blacksmith's helm",
+    "Briefcase",
+    "Bronze dragon mask",
+    "Bucket helm",
+    "Dark bow tie",
+    "Dark infinity colour kit",
+    "Dark trousers",
+    "Dark tuxedo cuffs",
+    "Dark tuxedo jacket",
+    "Dark tuxedo shoes",
+    "Deerstalker",
+    "Dragon cane",
+    "Dragon chainbody ornament kit",
+    "Dragon full helm ornament kit",
+    "Dragon legs+skirt ornament kit",
+    "Dragon scimitar ornament kit",
+    "Dragon sq shield ornament kit",
+    "Fremennik kilt",
+    "Fury ornament kit",
+    "Giant boot",
+    "Holy wraps",
+    "Hosidius scarf",
+    "Iron dragon mask",
+    "Katana",
+    "Light bow tie",
+    "Light infinity colour kit",
+    "Light trousers",
+    "Light tuxedo cuffs",
+    "Light tuxedo jacket",
+    "Light tuxedo shoes",
+    "Lovakengj scarf",
+    "Mithril dragon mask",
+    "Monocle",
+    "Musketeer hat",
+    "Musketeer pants",
+    "Musketeer tabard",
+    "Piscarilius scarf",
+    "Ranger gloves",
+    "Rangers' tights",
+    "Rangers' tunic",
+    "Ring of 3rd age",
+    "Royal crown",
+    "Royal gown bottom",
+    "Royal gown top",
+    "Royal sceptre",
+    "Rune dragon mask",
+    "Sagacious spectacles",
+    "Shayzien scarf",
+    "Steel dragon mask",
+    "Top hat",
+    "Uri's hat",
+]
+
+[[groups]]
+title = "Elite Treasure Trails (Rare)"
+items = [
+    "3rd age amulet",
+    "3rd age bow",
+    "3rd age cloak",
+    "3rd age full helmet",
+    "3rd age kiteshield",
+    "3rd age longsword",
+    "3rd age mage hat",
+    "3rd age platebody",
+    "3rd age platelegs",
+    "3rd age plateskirt",
+    "3rd age range coif",
+    "3rd age range legs",
+    "3rd age range top",
+    "3rd age robe",
+    "3rd age robe top",
+    "3rd age vambraces",
+    "3rd age wand",
+    "Gilded 2h sword",
+    "Gilded axe",
+    "Gilded boots",
+    "Gilded chainbody",
+    "Gilded coif",
+    "Gilded d'hide body",
+    "Gilded d'hide chaps",
+    "Gilded d'hide vambraces",
+    "Gilded full helm",
+    "Gilded hasta",
+    "Gilded kiteshield",
+    "Gilded med helm",
+    "Gilded pickaxe",
+    "Gilded platebody",
+    "Gilded platelegs",
+    "Gilded plateskirt",
+    "Gilded scimitar",
+    "Gilded spade",
+    "Gilded spear",
+    "Gilded sq shield",
+    "Lava dragon mask",
+    "Ring of nature",
+]
+
+[[groups]]
+title = "Fishing Trawler"
+items = [
+    "Angler boots",
+    "Angler hat",
+    "Angler top",
+    "Angler waders",
+]
+
+[[groups]]
+title = "Forestry"
+items = [
+    "Cape pouch",
+    "Clothes pouch blueprint",
+    "Felling axe handle",
+    "Forestry boots",
+    "Forestry hat",
+    "Forestry legs",
+    "Forestry top",
+    "Fox whistle",
+    "Funky shaped log",
+    "Golden pheasant egg",
+    "Log basket",
+    "Log brace",
+    "Lumberjack boots",
+    "Lumberjack hat",
+    "Lumberjack legs",
+    "Lumberjack top",
+    "Petal garland",
+    "Pheasant boots",
+    "Pheasant cape",
+    "Pheasant hat",
+    "Pheasant legs",
+    "Sturdy beehive parts",
+    "Twitcher's gloves",
+]
+
+[[groups]]
+title = "Fortis Colosseum"
+items = [
+    "Dizana's quiver (uncharged)",
+    "Echo crystal",
+    "Smol heredit",
+    "Sunfire fanatic chausses",
+    "Sunfire fanatic cuirass",
+    "Sunfire fanatic helm",
+    "Sunfire splinters",
+    "Tonalztics of ralos (uncharged)",
+    "Uncut onyx",
+]
+
+[[groups]]
+title = "Fossil Island Notes"
+items = [
+    "Ancient note",
+    "Ancient writings",
+    "Experimental note",
+    "Hastily scrawled note",
+    "Musty smelling note",
+    "Old writing",
+    "Paragraph of text",
+    "Partial note",
+    "Scribbled note",
+    "Short note",
+]
+
+[[groups]]
+title = "Giants' Foundry"
+items = [
+    "Colossal blade",
+    "Double ammo mould",
+    "Kovac's grog",
+    "Ore pack (Giants' Foundry)",
+    "Smithing catalyst",
+    "Smiths boots",
+    "Smiths gloves",
+    "Smiths trousers",
+    "Smiths tunic",
+]
+
+[[groups]]
+title = "Glough's Experiments"
+items = [
+    "Ballista limbs",
+    "Ballista spring",
+    "Heavy frame",
+    "Light frame",
+    "Monkey tail",
+    "Zenyte shard",
+]
+
+[[groups]]
+title = "Gnome Restaurant"
+items = [
+    "Gnome goggles",
+    "Gnome scarf",
+    "Grand seed pod",
+    "Mint cake",
+]
+
+[[groups]]
+title = "Guardians of the Rift"
+items = [
+    "Abyssal blue dye",
+    "Abyssal green dye",
+    "Abyssal lantern",
+    "Abyssal needle",
+    "Abyssal pearls",
+    "Abyssal protector",
+    "Abyssal red dye",
+    "Boots of the eye",
+    "Catalytic talisman",
+    "Guardian's eye",
+    "Hat of the eye",
+    "Intricate pouch",
+    "Lost bag",
+    "Ring of the elements",
+    "Robe bottoms of the eye",
+    "Robe top of the eye",
+    "Tarnished locket",
+]
+
+[[groups]]
+title = "Hallowed Sepulchre"
+items = [
+    "Dark acorn",
+    "Dark dye",
+    "Hallowed focus",
+    "Hallowed grapple",
+    "Hallowed hammer",
+    "Hallowed mark",
+    "Hallowed ring",
+    "Hallowed symbol",
+    "Hallowed token",
+    "Mysterious page",
+    "Ring of endurance (uncharged)",
+    "Strange old lockpick (full)",
+]
+
+[[groups]]
+title = "Hard Treasure Trails"
+items = [
+    "Amulet of glory (t4)",
+    "Ancient bracers",
+    "Ancient chaps",
+    "Ancient coif",
+    "Ancient d'hide body",
+    "Ancient d'hide boots",
+    "Ancient d'hide shield",
+    "Ancient full helm",
+    "Ancient kiteshield",
+    "Ancient platebody",
+    "Ancient platelegs",
+    "Ancient plateskirt",
+    "Armadyl bracers",
+    "Armadyl chaps",
+    "Armadyl coif",
+    "Armadyl d'hide body",
+    "Armadyl d'hide boots",
+    "Armadyl d'hide shield",
+    "Armadyl full helm",
+    "Armadyl kiteshield",
+    "Armadyl platebody",
+    "Armadyl platelegs",
+    "Armadyl plateskirt",
+    "Bandos bracers",
+    "Bandos chaps",
+    "Bandos coif",
+    "Bandos d'hide body",
+    "Bandos d'hide boots",
+    "Bandos d'hide shield",
+    "Bandos full helm",
+    "Bandos kiteshield",
+    "Bandos platebody",
+    "Bandos platelegs",
+    "Bandos plateskirt",
+    "Berserker necklace ornament kit",
+    "Black cavalier",
+    "Black dragon mask",
+    "Blue d'hide body (g)",
+    "Blue d'hide body (t)",
+    "Blue d'hide chaps (g)",
+    "Blue d'hide chaps (t)",
+    "Blue dragon mask",
+    "Cyclops head",
+    "Dark cavalier",
+    "Dragon boots ornament kit",
+    "Dual sai",
+    "Enchanted hat",
+    "Enchanted robe",
+    "Enchanted top",
+    "Explorer backpack",
+    "Green dragon mask",
+    "Guthix bracers",
+    "Guthix chaps",
+    "Guthix coif",
+    "Guthix crozier",
+    "Guthix d'hide body",
+    "Guthix d'hide boots",
+    "Guthix d'hide shield",
+    "Guthix full helm",
+    "Guthix kiteshield",
+    "Guthix platebody",
+    "Guthix platelegs",
+    "Guthix plateskirt",
+    "Guthix stole",
+    "Magic comp bow",
+    "Navy cavalier",
+    "Nunchaku",
+    "Pirate's hat",
+    "Pith helmet",
+    "Red cavalier",
+    "Red d'hide body (g)",
+    "Red d'hide body (t)",
+    "Red d'hide chaps (g)",
+    "Red d'hide chaps (t)",
+    "Red dragon mask",
+    "Robin hood hat",
+    "Rune cane",
+    "Rune defender ornament kit",
+    "Rune full helm (g)",
+    "Rune full helm (t)",
+    "Rune helm (h1)",
+    "Rune helm (h2)",
+    "Rune helm (h3)",
+    "Rune helm (h4)",
+    "Rune helm (h5)",
+    "Rune kiteshield (g)",
+    "Rune kiteshield (t)",
+    "Rune platebody (g)",
+    "Rune platebody (h1)",
+    "Rune platebody (h2)",
+    "Rune platebody (h3)",
+    "Rune platebody (h4)",
+    "Rune platebody (h5)",
+    "Rune platebody (t)",
+    "Rune platelegs (g)",
+    "Rune platelegs (t)",
+    "Rune plateskirt (g)",
+    "Rune plateskirt (t)",
+    "Rune shield (h1)",
+    "Rune shield (h2)",
+    "Rune shield (h3)",
+    "Rune shield (h4)",
+    "Rune shield (h5)",
+    "Saradomin bracers",
+    "Saradomin chaps",
+    "Saradomin coif",
+    "Saradomin crozier",
+    "Saradomin d'hide body",
+    "Saradomin d'hide boots",
+    "Saradomin d'hide shield",
+    "Saradomin full helm",
+    "Saradomin kiteshield",
+    "Saradomin platebody",
+    "Saradomin platelegs",
+    "Saradomin plateskirt",
+    "Saradomin stole",
+    "Tan cavalier",
+    "Thieving bag",
+    "Tzhaar-ket-om ornament kit",
+    "White cavalier",
+    "Zamorak bracers",
+    "Zamorak chaps",
+    "Zamorak coif",
+    "Zamorak crozier",
+    "Zamorak d'hide body",
+    "Zamorak d'hide boots",
+    "Zamorak d'hide shield",
+    "Zamorak full helm",
+    "Zamorak kiteshield",
+    "Zamorak platebody",
+    "Zamorak platelegs",
+    "Zamorak plateskirt",
+    "Zamorak stole",
+    "Zombie head",
+]
+
+[[groups]]
+title = "Hard Treasure Trails (Rare)"
+items = [
+    "3rd age amulet",
+    "3rd age full helmet",
+    "3rd age kiteshield",
+    "3rd age mage hat",
+    "3rd age platebody",
+    "3rd age platelegs",
+    "3rd age plateskirt",
+    "3rd age range coif",
+    "3rd age range legs",
+    "3rd age range top",
+    "3rd age robe",
+    "3rd age robe top",
+    "3rd age vambraces",
+    "Gilded 2h sword",
+    "Gilded chainbody",
+    "Gilded full helm",
+    "Gilded hasta",
+    "Gilded kiteshield",
+    "Gilded med helm",
+    "Gilded platebody",
+    "Gilded platelegs",
+    "Gilded plateskirt",
+    "Gilded spear",
+    "Gilded sq shield",
+]
+
+[[groups]]
+title = "Hunter Guild"
+items = [
+    "Guild hunter boots",
+    "Guild hunter headwear",
+    "Guild hunter legs",
+    "Guild hunter top",
+    "Huntsman's kit",
+    "Quetzin",
+]
+
+[[groups]]
+title = "Last Man Standing"
+items = [
+    "Ancient halo",
+    "Armadyl halo",
+    "Bandos halo",
+    "Blue dark bow paint",
+    "Brassica halo",
+    "Deadman's cape",
+    "Deadman's chest",
+    "Deadman's legs",
+    "Dragon pickaxe upgrade kit",
+    "Frozen whip mix",
+    "Golden armadyl special attack",
+    "Golden bandos special attack",
+    "Golden saradomin special attack",
+    "Golden zamorak special attack",
+    "Granite clamp",
+    "Green dark bow paint",
+    "Guthixian icon",
+    "Lava staff upgrade kit",
+    "Ornate maul handle",
+    "Seren halo",
+    "Steam staff upgrade kit",
+    "Swift blade",
+    "Victor's cape (1)",
+    "Victor's cape (10)",
+    "Victor's cape (100)",
+    "Victor's cape (1000)",
+    "Victor's cape (50)",
+    "Victor's cape (500)",
+    "Volcanic whip mix",
+    "Ward upgrade kit",
+    "White dark bow paint",
+    "Yellow dark bow paint",
+]
+
+[[groups]]
+title = "Magic Training Arena"
+items = [
+    "Apprentice wand",
+    "Beginner wand",
+    "Bones to Peaches",
+    "Infinity boots",
+    "Infinity bottoms",
+    "Infinity gloves",
+    "Infinity hat",
+    "Infinity top",
+    "Mage's book",
+    "Master wand",
+    "Teacher wand",
+]
+
+[[groups]]
+title = "Mahogany Homes"
+items = [
+    "Amy's saw",
+    "Carpenter's boots",
+    "Carpenter's helmet",
+    "Carpenter's shirt",
+    "Carpenter's trousers",
+    "Hosidius blueprints",
+    "Plank sack",
+    "Supply crate",
+]
+
+[[groups]]
+title = "Master Treasure Trails"
+items = [
+    "Ale of the gods",
+    "Anguish ornament kit",
+    "Ankou gloves",
+    "Ankou mask",
+    "Ankou socks",
+    "Ankou top",
+    "Ankou's leggings",
+    "Arceuus hood",
+    "Armadyl godsword ornament kit",
+    "Bandos godsword ornament kit",
+    "Black demon mask",
+    "Bloodhound",
+    "Boots of darkness",
+    "Bowl wig",
+    "Dragon defender ornament kit",
+    "Dragon kiteshield ornament kit",
+    "Dragon platebody ornament kit",
+    "Fancy tiara",
+    "Gloves of darkness",
+    "Greater demon mask",
+    "Half moon spectacles",
+    "Hood of darkness",
+    "Hosidius hood",
+    "Jungle demon mask",
+    "Left eye patch",
+    "Lesser demon mask",
+    "Lovakengj hood",
+    "Mummy's body",
+    "Mummy's feet",
+    "Mummy's hands",
+    "Mummy's head",
+    "Mummy's legs",
+    "Obsidian cape (r)",
+    "Occult ornament kit",
+    "Old demon mask",
+    "Piscarilius hood",
+    "Ring of 3rd age",
+    "Robe bottom of darkness",
+    "Robe top of darkness",
+    "Samurai boots",
+    "Samurai gloves",
+    "Samurai greaves",
+    "Samurai kasa",
+    "Samurai shirt",
+    "Saradomin godsword ornament kit",
+    "Shayzien hood",
+    "Tormented ornament kit",
+    "Torture ornament kit",
+    "Zamorak godsword ornament kit",
+]
+
+[[groups]]
+title = "Master Treasure Trails (Rare)"
+items = [
+    "3rd age amulet",
+    "3rd age axe",
+    "3rd age bow",
+    "3rd age cloak",
+    "3rd age druidic cloak",
+    "3rd age druidic robe bottoms",
+    "3rd age druidic robe top",
+    "3rd age druidic staff",
+    "3rd age full helmet",
+    "3rd age kiteshield",
+    "3rd age longsword",
+    "3rd age mage hat",
+    "3rd age pickaxe",
+    "3rd age platebody",
+    "3rd age platelegs",
+    "3rd age plateskirt",
+    "3rd age range coif",
+    "3rd age range legs",
+    "3rd age range top",
+    "3rd age robe",
+    "3rd age robe top",
+    "3rd age vambraces",
+    "3rd age wand",
+    "Bucket helm (g)",
+    "Gilded 2h sword",
+    "Gilded axe",
+    "Gilded boots",
+    "Gilded chainbody",
+    "Gilded coif",
+    "Gilded d'hide body",
+    "Gilded d'hide chaps",
+    "Gilded d'hide vambraces",
+    "Gilded full helm",
+    "Gilded hasta",
+    "Gilded kiteshield",
+    "Gilded med helm",
+    "Gilded pickaxe",
+    "Gilded platebody",
+    "Gilded platelegs",
+    "Gilded plateskirt",
+    "Gilded scimitar",
+    "Gilded spade",
+    "Gilded spear",
+    "Gilded sq shield",
+    "Ring of coins",
+]
+
+[[groups]]
+title = "Mastering Mixology"
+items = [
+    "Alchemist gloves",
+    "Alchemist labcoat",
+    "Alchemist pants",
+    "Alchemist's amulet",
+    "Chugging barrel (disassembled)",
+    "Prescription goggles",
+    "Reagent pouch",
+]
+
+[[groups]]
+title = "Medium Treasure Trails"
+items = [
+    "Adamant cane",
+    "Adamant full helm (g)",
+    "Adamant full helm (t)",
+    "Adamant helm (h1)",
+    "Adamant helm (h2)",
+    "Adamant helm (h3)",
+    "Adamant helm (h4)",
+    "Adamant helm (h5)",
+    "Adamant kiteshield (g)",
+    "Adamant kiteshield (t)",
+    "Adamant platebody (g)",
+    "Adamant platebody (h1)",
+    "Adamant platebody (h2)",
+    "Adamant platebody (h3)",
+    "Adamant platebody (h4)",
+    "Adamant platebody (h5)",
+    "Adamant platebody (t)",
+    "Adamant platelegs (g)",
+    "Adamant platelegs (t)",
+    "Adamant plateskirt (g)",
+    "Adamant plateskirt (t)",
+    "Adamant shield (h1)",
+    "Adamant shield (h2)",
+    "Adamant shield (h3)",
+    "Adamant shield (h4)",
+    "Adamant shield (h5)",
+    "Ancient cloak",
+    "Ancient crozier",
+    "Ancient mitre",
+    "Ancient stole",
+    "Arceuus banner",
+    "Armadyl cloak",
+    "Armadyl crozier",
+    "Armadyl mitre",
+    "Armadyl stole",
+    "Bandos cloak",
+    "Bandos crozier",
+    "Bandos mitre",
+    "Bandos stole",
+    "Black boater",
+    "Black elegant legs",
+    "Black elegant shirt",
+    "Black headband",
+    "Black leprechaun hat",
+    "Black unicorn mask",
+    "Blue boater",
+    "Blue headband",
+    "Brown headband",
+    "Cabbage round shield",
+    "Cat mask",
+    "Climbing boots (g)",
+    "Crier bell",
+    "Crier coat",
+    "Crier hat",
+    "Gnomish firelighter",
+    "Gold elegant blouse",
+    "Gold elegant legs",
+    "Gold elegant shirt",
+    "Gold elegant skirt",
+    "Gold headband",
+    "Green boater",
+    "Green d'hide body (g)",
+    "Green d'hide body (t)",
+    "Green d'hide chaps (g)",
+    "Green d'hide chaps (t)",
+    "Green headband",
+    "Guthix cloak",
+    "Guthix mitre",
+    "Holy sandals",
+    "Hosidius banner",
+    "Leprechaun hat",
+    "Lovakengj banner",
+    "Mithril full helm (g)",
+    "Mithril full helm (t)",
+    "Mithril kiteshield (g)",
+    "Mithril kiteshield (t)",
+    "Mithril platebody (g)",
+    "Mithril platebody (t)",
+    "Mithril platelegs (g)",
+    "Mithril platelegs (t)",
+    "Mithril plateskirt (g)",
+    "Mithril plateskirt (t)",
+    "Orange boater",
+    "Penguin mask",
+    "Pink boater",
+    "Pink elegant blouse",
+    "Pink elegant legs",
+    "Pink elegant shirt",
+    "Pink elegant skirt",
+    "Pink headband",
+    "Piscarilius banner",
+    "Purple boater",
+    "Purple elegant blouse",
+    "Purple elegant legs",
+    "Purple elegant shirt",
+    "Purple elegant skirt",
+    "Ranger boots",
+    "Red boater",
+    "Red headband",
+    "Saradomin cloak",
+    "Saradomin mitre",
+    "Shayzien banner",
+    "Spiked manacles",
+    "Strength amulet (t)",
+    "White boater",
+    "White elegant blouse",
+    "White elegant skirt",
+    "White headband",
+    "White unicorn mask",
+    "Wizard boots",
+    "Wolf cloak",
+    "Wolf mask",
+    "Yew comp bow",
+    "Zamorak cloak",
+    "Zamorak mitre",
+]
+
+[[groups]]
+title = "Miscellaneous"
+items = [
+    "Amulet of eternal glory",
+    "Big bass",
+    "Big shark",
+    "Big swordfish",
+    "Blue egg sac",
+    "Bottom of sceptre",
+    "Broken zombie axe",
+    "Broken zombie helmet",
+    "Chewed bones",
+    "Chompy chick",
+    "Crystal grail",
+    "Curved bone",
+    "Dark totem base",
+    "Dark totem middle",
+    "Dark totem top",
+    "Dragon full helm",
+    "Dragon limbs",
+    "Dragon metal lump",
+    "Dragon metal slice",
+    "Dragon spear",
+    "Dragon warhammer",
+    "Dragonstone boots",
+    "Dragonstone full helm",
+    "Dragonstone gauntlets",
+    "Dragonstone platebody",
+    "Dragonstone platelegs",
+    "Ecumenical key",
+    "Elven signet",
+    "Enhanced crystal teleport seed",
+    "Evil chicken feet",
+    "Evil chicken head",
+    "Evil chicken legs",
+    "Evil chicken wings",
+    "Expert mining gloves",
+    "Fresh crab claw",
+    "Fresh crab shell",
+    "Giant key",
+    "Herbi",
+    "Hespori seed",
+    "Left skull half",
+    "Long bone",
+    "Mask of ranul",
+    "Merfolk trident",
+    "Mining gloves",
+    "Mossy key",
+    "Orange egg sac",
+    "Pharaoh's sceptre (uncharged)",
+    "Right skull half",
+    "Shaman mask",
+    "Shield left half",
+    "Superior mining gloves",
+    "Top of sceptre",
+    "Uncut onyx",
+    "Xeric's talisman (inert)",
+]
+
+[[groups]]
+title = "Monkey Backpacks"
+items = [
+    "Karamjan monkey (item)",
+    "Kruk jr",
+    "Maniacal monkey (item)",
+    "Princely monkey",
+    "Skeleton monkey (item)",
+    "Zombie monkey (item)",
+]
+
+[[groups]]
+title = "Moons of Peril"
+items = [
+    "Atlatl dart",
+    "Blood moon chestplate",
+    "Blood moon helm",
+    "Blood moon tassets",
+    "Blue moon chestplate",
+    "Blue moon helm",
+    "Blue moon spear",
+    "Blue moon tassets",
+    "Dual macuahuitl",
+    "Eclipse atlatl",
+    "Eclipse moon chestplate",
+    "Eclipse moon helm",
+    "Eclipse moon tassets",
+]
+
+[[groups]]
+title = "Motherlode Mine"
+items = [
+    "Coal bag",
+    "Gem bag",
+    "Prospector boots",
+    "Prospector helmet",
+    "Prospector jacket",
+    "Prospector legs",
+]
+
+[[groups]]
+title = "My Notes"
+items = [
+    "Ancient page",
+]
+
+[[groups]]
+title = "Pest Control"
+items = [
+    "Elite void robe",
+    "Elite void top",
+    "Void knight gloves",
+    "Void knight mace",
+    "Void knight robe",
+    "Void knight top",
+    "Void mage helm",
+    "Void melee helm",
+    "Void ranger helm",
+    "Void seal",
+]
+
+[[groups]]
+title = "Random Events"
+items = [
+    "Beekeeper's boots",
+    "Beekeeper's gloves",
+    "Beekeeper's hat",
+    "Beekeeper's legs",
+    "Beekeeper's top",
+    "Camo bottoms",
+    "Camo helmet",
+    "Camo top",
+    "Frog token",
+    "Lederhosen hat",
+    "Lederhosen shorts",
+    "Lederhosen top",
+    "Mime boots",
+    "Mime gloves",
+    "Mime legs",
+    "Mime mask",
+    "Mime top",
+    "Stale baguette",
+    "Zombie boots",
+    "Zombie gloves",
+    "Zombie mask",
+    "Zombie shirt",
+    "Zombie trousers",
+]
+
+[[groups]]
+title = "Revenants"
+items = [
+    "Amulet of avarice",
+    "Ancient crystal",
+    "Ancient effigy",
+    "Ancient emblem",
+    "Ancient medallion",
+    "Ancient relic",
+    "Ancient statuette",
+    "Ancient totem",
+    "Bracelet of ethereum (uncharged)",
+    "Craw's bow (u)",
+    "Revenant cave teleport",
+    "Revenant ether",
+    "Thammaron's sceptre (u)",
+    "Viggora's chainmace (u)",
+]
+
+[[groups]]
+title = "Rogues' Den"
+items = [
+    "Rogue boots",
+    "Rogue gloves",
+    "Rogue mask",
+    "Rogue top",
+    "Rogue trousers",
+]
+
+[[groups]]
+title = "Rooftop Agility"
+items = [
+    "Graceful boots",
+    "Graceful cape",
+    "Graceful gloves",
+    "Graceful hood",
+    "Graceful legs",
+    "Graceful top",
+    "Mark of grace",
+]
+
+[[groups]]
+title = "Royal Titans"
+items = [
+    "Bran",
+    "Deadeye prayer scroll",
+    "Desiccated page",
+    "Fire element staff crown",
+    "Giantsoul amulet",
+    "Ice element staff crown",
+    "Mystic vigour prayer scroll",
+]
+
+[[groups]]
+title = "Scroll Cases"
+items = [
+    "Major beginner scroll case",
+    "Major easy scroll case",
+    "Major elite scroll case",
+    "Major hard scroll case",
+    "Major master scroll case",
+    "Major medium scroll case",
+    "Mimic scroll case",
+    "Minor beginner scroll case",
+    "Minor easy scroll case",
+    "Minor elite scroll case",
+    "Minor hard scroll case",
+    "Minor master scroll case",
+    "Minor medium scroll case",
+]
+
+[[groups]]
+title = "Shades of Mort'ton"
+items = [
+    "Amulet of the damned (full)",
+    "Black locks",
+    "Bloody notes",
+    "Bronze locks",
+    "Fine cloth",
+    "Flamtaer bag",
+    "Gold locks",
+    "Silver locks",
+    "Steel locks",
+    "Tree wizards' journal",
+    "Zealot's boots",
+    "Zealot's helm",
+    "Zealot's robe bottom",
+    "Zealot's robe top",
+]
+
+[[groups]]
+title = "Shared Treasure Trails Rewards"
+items = [
+    "Ancient blessing",
+    "Ancient page 1",
+    "Ancient page 2",
+    "Ancient page 3",
+    "Ancient page 4",
+    "Armadyl page 1",
+    "Armadyl page 2",
+    "Armadyl page 3",
+    "Armadyl page 4",
+    "Bandos page 1",
+    "Bandos page 2",
+    "Bandos page 3",
+    "Bandos page 4",
+    "Blue firelighter",
+    "Charge dragonstone jewellery scroll",
+    "Digsite teleport",
+    "Feldip hills teleport",
+    "Green firelighter",
+    "Guthix page 1",
+    "Guthix page 2",
+    "Guthix page 3",
+    "Guthix page 4",
+    "Holy blessing",
+    "Honourable blessing",
+    "Iorwerth camp teleport",
+    "Lumberyard teleport",
+    "Lunar isle teleport",
+    "Master scroll book (empty)",
+    "Mort'ton teleport",
+    "Mos le'harmless teleport",
+    "Nardah teleport",
+    "Peaceful blessing",
+    "Pest control teleport",
+    "Piscatoris teleport",
+    "Purple firelighter",
+    "Purple sweets",
+    "Red firelighter",
+    "Saradomin page 1",
+    "Saradomin page 2",
+    "Saradomin page 3",
+    "Saradomin page 4",
+    "Tai bwo wannai teleport",
+    "Unholy blessing",
+    "War blessing",
+    "White firelighter",
+    "Zamorak page 1",
+    "Zamorak page 2",
+    "Zamorak page 3",
+    "Zamorak page 4",
+]
+
+[[groups]]
+title = "Shayzien Armour"
+items = [
+    "Shayzien body (5)",
+    "Shayzien boots (1)",
+    "Shayzien boots (2)",
+    "Shayzien boots (3)",
+    "Shayzien boots (4)",
+    "Shayzien boots (5)",
+    "Shayzien gloves (1)",
+    "Shayzien gloves (2)",
+    "Shayzien gloves (3)",
+    "Shayzien gloves (4)",
+    "Shayzien gloves (5)",
+    "Shayzien greaves (1)",
+    "Shayzien greaves (2)",
+    "Shayzien greaves (3)",
+    "Shayzien greaves (4)",
+    "Shayzien greaves (5)",
+    "Shayzien helm (1)",
+    "Shayzien helm (2)",
+    "Shayzien helm (3)",
+    "Shayzien helm (4)",
+    "Shayzien helm (5)",
+    "Shayzien platebody (1)",
+    "Shayzien platebody (2)",
+    "Shayzien platebody (3)",
+    "Shayzien platebody (4)",
+]
+
+[[groups]]
+title = "Shooting Stars"
+items = [
+    "Celestial ring (uncharged)",
+    "Star fragment",
+]
+
+[[groups]]
+title = "Skilling pets"
+items = [
+    "Baby chinchompa (grey)",
+    "Beaver",
+    "Giant squirrel",
+    "Heron",
+    "Rift guardian (fire)",
+    "Rock golem",
+    "Rocky",
+    "Tangleroot",
+]
+
+[[groups]]
+title = "Slayer"
+items = [
+    "Abyssal dagger",
+    "Abyssal head",
+    "Abyssal whip",
+    "Adamant boots",
+    "Ancient ceremonial boots",
+    "Ancient ceremonial gloves",
+    "Ancient ceremonial legs",
+    "Ancient ceremonial mask",
+    "Ancient ceremonial top",
+    "Aranea boots",
+    "Basilisk head",
+    "Basilisk jaw",
+    "Black boots",
+    "Black mask (10)",
+    "Blood shard",
+    "Brine sabre",
+    "Broken dragon hasta",
+    "Bronze boots",
+    "Cockatrice head",
+    "Crawling hand (item)",
+    "Dagon'hai hat",
+    "Dagon'hai robe bottom",
+    "Dagon'hai robe top",
+    "Dark bow",
+    "Draconic visage",
+    "Dragon boots",
+    "Dragon chainbody",
+    "Dragon harpoon",
+    "Dragon knife",
+    "Dragon sword",
+    "Dragon thrownaxe",
+    "Drake's claw",
+    "Drake's tooth",
+    "Dust battlestaff",
+    "Eternal gem",
+    "Flippers",
+    "Frozen tear",
+    "Glacial temotli",
+    "Granite boots",
+    "Granite helm",
+    "Granite legs",
+    "Granite longsword",
+    "Granite maul",
+    "Hydra tail",
+    "Hydra's eye",
+    "Hydra's fang",
+    "Hydra's heart",
+    "Imbued heart",
+    "Iron boots",
+    "Kraken tentacle",
+    "Kurask head",
+    "Leaf-bladed battleaxe",
+    "Leaf-bladed sword",
+    "Mist battlestaff",
+    "Mithril boots",
+    "Mudskipper hat",
+    "Mystic boots (dark)",
+    "Mystic boots (dusk)",
+    "Mystic boots (light)",
+    "Mystic gloves (dark)",
+    "Mystic gloves (dusk)",
+    "Mystic gloves (light)",
+    "Mystic hat (dark)",
+    "Mystic hat (dusk)",
+    "Mystic hat (light)",
+    "Mystic robe bottom (dark)",
+    "Mystic robe bottom (dusk)",
+    "Mystic robe bottom (light)",
+    "Mystic robe top (dark)",
+    "Mystic robe top (dusk)",
+    "Mystic robe top (light)",
+    "Occult necklace",
+    "Pendant of ates (inert)",
+    "Rune boots",
+    "Steel boots",
+    "Sulphur blades",
+    "Teleport anchoring scroll",
+    "Uncharged trident",
+    "Warped sceptre (uncharged)",
+    "Wyvern visage",
+]
+
+[[groups]]
+title = "Soul Wars"
+items = [
+    "Ectoplasmator",
+    "Lil' creator",
+    "Soul cape",
+]
+
+[[groups]]
+title = "Temple Trekking"
+items = [
+    "Lumberjack boots",
+    "Lumberjack hat",
+    "Lumberjack legs",
+    "Lumberjack top",
+]
+
+[[groups]]
+title = "The Fight Caves"
+items = [
+    "Fire cape",
+    "Tzrek-jad",
+]
+
+[[groups]]
+title = "The Hueycoatl"
+items = [
+    "Dragon hunter wand",
+    "Huasca seed",
+    "Huberte",
+    "Hueycoatl hide",
+    "Soiled page",
+    "Tome of earth (empty)",
+]
+
+[[groups]]
+title = "The Inferno"
+items = [
+    "Infernal cape",
+    "Jal-nib-rek",
+]
+
+[[groups]]
+title = "The Nightmare"
+items = [
+    "Eldritch orb",
+    "Harmonised orb",
+    "Inquisitor's great helm",
+    "Inquisitor's hauberk",
+    "Inquisitor's mace",
+    "Inquisitor's plateskirt",
+    "Jar of dreams",
+    "Little nightmare",
+    "Nightmare staff",
+    "Parasitic egg",
+    "Slepey tablet",
+    "Volatile orb",
+]
+
+[[groups]]
+title = "Tithe Farm"
+items = [
+    "Farmer's boots",
+    "Farmer's boro trousers",
+    "Farmer's jacket",
+    "Farmer's strawhat",
+    "Gricoller's can",
+    "Herb sack",
+    "Seed box",
+]
+
+[[groups]]
+title = "Tormented Demons"
+items = [
+    "Burning claw",
+    "Guthixian temple teleport",
+    "Tormented synapse",
+]
+
+[[groups]]
+title = "Trouble Brewing"
+items = [
+    "Black naval shirt",
+    "Black navy slacks",
+    "Black tricorn hat",
+    "Blue naval shirt",
+    "Blue navy slacks",
+    "Blue tricorn hat",
+    "Bronze fist flag",
+    "Brown naval shirt",
+    "Brown navy slacks",
+    "Brown tricorn hat",
+    "Cutthroat flag",
+    "Gilded smile flag",
+    "Green naval shirt",
+    "Green navy slacks",
+    "Green tricorn hat",
+    "Grey naval shirt",
+    "Grey navy slacks",
+    "Grey tricorn hat",
+    "Lucky shot flag",
+    "Phasmatys flag",
+    "Purple naval shirt",
+    "Purple navy slacks",
+    "Purple tricorn hat",
+    "Red naval shirt",
+    "Red navy slacks",
+    "Red tricorn hat",
+    "Rum (blue)",
+    "Rum (red)",
+    "The stuff",
+    "Treasure flag",
+]
+
+[[groups]]
+title = "TzHaar"
+items = [
+    "Obsidian cape",
+    "Obsidian helmet",
+    "Obsidian platebody",
+    "Obsidian platelegs",
+    "Toktz-ket-xil",
+    "Toktz-mej-tal",
+    "Toktz-xil-ak",
+    "Toktz-xil-ek",
+    "Toktz-xil-ul",
+    "Tzhaar-ket-om",
+]
+
+[[groups]]
+title = "Venenatis and Spindel"
+items = [
+    "Dragon 2h sword",
+    "Dragon pickaxe",
+    "Fangs of venenatis",
+    "Treasonous ring",
+    "Venenatis spiderling",
+    "Voidwaker gem",
+]
+
+[[groups]]
+title = "Vet'ion and Calvar'ion"
+items = [
+    "Dragon 2h sword",
+    "Dragon pickaxe",
+    "Ring of the gods",
+    "Skull of vet'ion",
+    "Vet'ion jr.",
+    "Voidwaker blade",
+]
+
+[[groups]]
+title = "Volcanic Mine"
+items = [
+    "Ash covered tome",
+    "Dragon pickaxe (broken)",
+    "Large water container",
+    "Prospector boots",
+    "Prospector helmet",
+    "Prospector jacket",
+    "Prospector legs",
+    "Volcanic mine teleport",
+]
+
+[[groups]]
+title = "Yama"
+items = [
+    "Barrel of demonic tallow (full)",
+    "Chasm teleport scroll",
+    "Dossier",
+    "Forgotten lockbox",
+    "Oathplate chest",
+    "Oathplate helm",
+    "Oathplate legs",
+    "Oathplate shards",
+    "Rite of vile transference",
+    "Soulflame horn",
+    "Yami",
 ]
