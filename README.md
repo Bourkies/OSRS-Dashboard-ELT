@@ -128,12 +128,18 @@ To run the pipeline automatically, you can create a cron job.
 
 1.  Open the cron table for editing: `crontab -e`
 2.  Add a line to define the schedule. This example runs the ETL every 15 minutes:
-    ```crontab
-    */15 * * * * cd /path/to/your/<your-project-folder-name> && docker-compose run --rm etl >> /path/to/your/<your-project-folder-name>/logs/cron.log 2>&1
+    ```bash
+    # First, find the full path to docker-compose
+    which docker-compose
     ```
-    **Important:**
-    * Replace `/path/to/your/<your-project-folder-name>` with the actual absolute path to your project.
-    * The `>> ... 2>&1` part redirects all output to a `cron.log` file, which is useful for debugging.
+    Use the path from the command above in your crontab entry. For example, if it returns `/usr/local/bin/docker-compose`:
+    ```crontab
+    */15 * * * * cd /path/to/your/project && /usr/local/bin/docker-compose run --rm etl >> /path/to/your/project/logs/cron.log 2>&1
+    ```
+    **Important Notes:**
+    *   Replace `/path/to/your/project` with the actual absolute path to your project folder (e.g., `/home/bourke/projects/AU-OSRS-Dashboard/OSRS-Dashboard-ELT`).
+    *   Using the full path to `docker-compose` is crucial because cron jobs have a very limited `PATH` environment variable and may not find the command otherwise.
+    *   The `>> ... 2>&1` part redirects all output (both standard and error) to a `cron.log` file inside your project's `logs` directory, which is essential for debugging.
 
 ---
 
