@@ -28,6 +28,10 @@ services:
       - ./OSRS-Dashboard-ETL/src/historical_collection_logs.toml:/app/src/historical_collection_logs.toml:ro
       - ./OSRS-Dashboard-ETL/src/historical_personal_bests.toml:/app/src/historical_personal_bests.toml:ro
 
+      # --- Static Assets ---
+      # Mount the images directory so the script can find the PB thumbnails.
+      - ./OSRS-Dashboard-ETL/images:/app/images:ro
+
     # This service is intended to be run on-demand via a cron job, not kept running.
     # Example cron command to run every 15 minutes:
     # */15 * * * * cd /path/to/your/project && docker-compose run --rm etl
