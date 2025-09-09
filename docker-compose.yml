@@ -8,7 +8,7 @@ services:
   # ETL Service: For running the data pipeline on a schedule
   etl:
     build:
-      context: ./OSRS-Dashboard-ETL  # Look for the Dockerfile in the ETL directory
+      context: .  # Look for the Dockerfile in the current directory
       dockerfile: Dockerfile
     container_name: osrs-etl
     # Mount volumes to persist data and logs, and to provide configurations.
@@ -16,21 +16,21 @@ services:
     # by the container and are not affected by code updates.
     volumes:
       # --- Persisted Data & Logs ---
-      - ./OSRS-Dashboard-ETL/data:/app/data
-      - ./OSRS-Dashboard-ETL/logs:/app/logs
-      - ./OSRS-Dashboard-ETL/summaries:/app/summaries
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./summaries:/app/summaries
 
       # --- Configuration Files ---
       # Mount your local, customized config files into the container.
       # These files are ignored by Git.
-      - ./OSRS-Dashboard-ETL/src/secrets.toml:/app/src/secrets.toml:ro
-      - ./OSRS-Dashboard-ETL/src/config.toml:/app/src/config.toml:ro
-      - ./OSRS-Dashboard-ETL/src/historical_collection_logs.toml:/app/src/historical_collection_logs.toml:ro
-      - ./OSRS-Dashboard-ETL/src/historical_personal_bests.toml:/app/src/historical_personal_bests.toml:ro
+      - ./src/secrets.toml:/app/src/secrets.toml:ro
+      - ./src/config.toml:/app/src/config.toml:ro
+      - ./src/historical_collection_logs.toml:/app/src/historical_collection_logs.toml:ro
+      - ./src/historical_personal_bests.toml:/app/src/historical_personal_bests.toml:ro
 
       # --- Static Assets ---
       # Mount the images directory so the script can find the PB thumbnails.
-      - ./OSRS-Dashboard-ETL/images:/app/images:ro
+      - ./images:/app/images:ro
 
     # This service is intended to be run on-demand via a cron job, not kept running.
     # Example cron command to run every 15 minutes:

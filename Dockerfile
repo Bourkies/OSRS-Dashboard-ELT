@@ -14,6 +14,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the rest of the application's source code
 COPY src/ /app/src/
 
+# Copy the static image assets into the image. This is more reliable
+# than a volume mount for static content.
+COPY images/ /app/images/
+
 # The command to run when the container launches.
 # This executes the main ETL runner script.
 CMD [ "python", "src/run_all_etl.py" ]
