@@ -73,16 +73,17 @@ def create_embed_for_group(group, has_records=True, timestamp=None):
 
         # Build the lines for this specific record
         record_details = [
-            f"**Time:** {time}",
-            f"**Holder(s):** {holder_str}"
+            f"* **Time:** {time}",
+            f"* **Holder(s):** {holder_str}"
         ]
         if date:
-            record_details.append(f"**Date:** {date}")
+            record_details.append(f"* *{date}*")
 
         # Build the title line, adding the emoji if it exists
-        title_line = f"**{record_name}**"
         if discord_emoji:
-            title_line += f" {discord_emoji}"
+            title_line = f"{discord_emoji} **{record_name}**"
+        else:
+            title_line = f"⚔️ **{record_name}**"
 
         part = f"{title_line}\n" + "\n".join(record_details)
         description_parts.append(part)
