@@ -47,7 +47,7 @@ def save_state(path: Path, state: dict):
     except IOError as e:
         logger.error(f"Error: Could not save state to '{path}': {e}")
 
-def create_embed_for_group(group, has_records=True):
+def create_embed_for_group(group, has_records=True, timestamp=None):
     """Creates a discord.Embed object for a given group of records."""
     embed = discord.Embed(
         title=group.get('title', 'Personal Bests'),
@@ -56,6 +56,9 @@ def create_embed_for_group(group, has_records=True):
 
     if not has_records:
         embed.description = "No records to display in this category."
+        if timestamp:
+            embed.timestamp = timestamp
+            embed.set_footer(text="Updated")
         return embed
     
     description_parts = []
@@ -90,6 +93,11 @@ def create_embed_for_group(group, has_records=True):
         logger.warning(f"Embed description for '{group.get('title')}' was truncated as it exceeded the 4096 character limit.")
     
     embed.description = description
+    if timestamp:
+        # The official way to add a timestamp to an embed.
+        # It will appear next to the footer text (e.g., "Updated • Today at 5:30 PM")
+        embed.timestamp = timestamp
+        embed.set_footer(text="Updated")
     return embed
 
 # --- Main Logic ---
@@ -133,6 +141,9 @@ class PBPosterClient(discord.Client):
             return
 
         logger.info(f"Operating in channel: #{channel.name} ({channel.id})")
+
+        # Get a single timestamp for this entire update run for consistency
+        update_timestamp = pd.Timestamp.now().to_pydatetime()
 
         db_records_map = self.pb_df.set_index('Task').to_dict('index') if not self.pb_df.empty else {}
 
@@ -205,7 +216,7 @@ class PBPosterClient(discord.Client):
             has_db_records = any(r.get('holder') for r in embed_group_data['records'])
 
             message_id = self.state.get(group_title)
-            embed = create_embed_for_group(embed_group_data, has_records=has_db_records)
+            embed = create_embed_for_group(embed_group_data, has_records=has_db_records, timestamp=update_timestamp)
             
             image_path_str = group_from_toml.get('Image')
             discord_file = None
