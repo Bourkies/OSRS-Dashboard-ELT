@@ -19,3 +19,8 @@ src/secrets.toml
 src/config.toml
 src/historical_collection_logs.toml
 src/historical_personal_bests.toml
+
+# --- Test files ---
+# Files used only for testing
+5_post_pbs_to_discord_test*
+
