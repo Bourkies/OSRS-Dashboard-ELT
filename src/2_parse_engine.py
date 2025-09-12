@@ -96,7 +96,45 @@ def parse_raw_data(df_raw: pd.DataFrame, config: dict) -> (pd.DataFrame, pd.Data
                             if details.get("Broadcast_Type") == "Total Level":
                                 details["Skill"] = "Total"
                             
-                            parsed_broadcasts.append(details)
+                            # --- Generalized Multi-User Splitting Logic ---
+                            raw_username_str = details.get('Username')
+                            
+                            # Only proceed if a username was captured by the regex
+                            if raw_username_str:
+                                # Pre-process to handle malformed usernames like "UserAand UserB"
+                                words = raw_username_str.split(' ')
+                                new_words = []
+                                for word in words:
+                                    if word.lower().endswith('and') and len(word) > 3:
+                                        new_words.append(word[:-3])
+                                        new_words.append('and')
+                                    else:
+                                        new_words.append(word)
+                                processed_username_str = ' '.join(new_words)
+
+                                # Now check if the processed string looks like it has multiple users
+                                if ',' in processed_username_str or ' and ' in processed_username_str:
+                                    logger.debug(f"Potential multi-user broadcast detected for type '{group_def['broadcast_type']}'. Processed username string: '{raw_username_str}'")
+                                    logger.debug(f'Names Found: {processed_username_str}')
+
+                                    # Normalize separators by replacing commas, then split by ' and '
+                                    normalized_str = processed_username_str.replace(',', ' and ')
+                                    username_list = [name.strip() for name in normalized_str.split(' and ') if name.strip()]
+                                    
+                                    logger.debug(f"Split usernames into: {username_list}")
+
+                                    for user in username_list:
+                                        user_details = details.copy()
+                                        user_details['Username'] = user
+                                        logger.trace(f"Creating record for user: '{user}' in broadcast type '{group_def['broadcast_type']}'")
+                                        parsed_broadcasts.append(user_details)
+                                else:
+                                    # This is a standard, single-user broadcast
+                                    parsed_broadcasts.append(details)
+                            else:
+                                # No username was captured in this broadcast, just add it
+                                parsed_broadcasts.append(details)
+
                             is_parsed = True
                             break
                         else:
@@ -150,7 +188,9 @@ def save_df_with_ignore(df: pd.DataFrame, table_name: str, engine):
                     connection.execute(stmt, row_dict)
                     rows_added += 1
                 except exc.IntegrityError:
-                    logger.trace(f"Ignoring duplicate raw_log_id {row.get('raw_log_id')} for table {table_name}")
+                    # This can happen if the row is a true duplicate (e.g. re-running the parser on old data)
+                    # The UNIQUE constraint (e.g., on raw_log_id or a composite) prevents it.
+                    logger.trace(f"Ignoring duplicate entry for table {table_name}, raw_log_id: {row.get('raw_log_id')}")
                     continue
                 except Exception:
                     logger.error(f"Failed to insert row into {table_name}: {row.to_dict()}", exc_info=True)
@@ -176,7 +216,12 @@ def main():
                 for table_name, columns in config['database_schema'].items():
                     if not inspect(parsed_engine).has_table(table_name):
                         cols_str = ", ".join([f'"{col_name}" {col_type}' for col_name, col_type in columns.items()])
-                        unique_constraint = ", UNIQUE(raw_log_id)"
+                        # Use a composite UNIQUE constraint for tables with a Username to allow multiple
+                        # records from a single raw_log_id (for multi-user broadcasts).
+                        if 'Username' in columns:
+                            unique_constraint = ', UNIQUE(raw_log_id, "Username")'
+                        else:
+                            unique_constraint = ', UNIQUE(raw_log_id)'
                         connection.execute(text(f'CREATE TABLE "{table_name}" ({cols_str}{unique_constraint})'))
         
         df_to_parse = pd.DataFrame()
