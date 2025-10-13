@@ -80,11 +80,18 @@ def parse_raw_data(df_raw: pd.DataFrame, config: dict) -> (pd.DataFrame, pd.Data
                         
                         if is_valid:
                             # --- NEW: Apply item value override right after parsing ---
-                            if not details.get('Item_Value') and details.get('Item_Name'):
-                                override_value = item_value_overrides.get(details['Item_Name'])
-                                if override_value:
-                                    details['Item_Value'] = override_value
-                                    logger.trace(f"Applied value override for '{details['Item_Name']}': {override_value}")
+                            item_name = details.get('Item_Name')
+                            if not details.get('Item_Value') and item_name:
+                                config_value = item_value_overrides.get(item_name)
+                                value_to_apply = None
+                                if isinstance(config_value, list) and len(config_value) > 0:
+                                    value_to_apply = config_value[0] # Use the first element (the price)
+                                elif isinstance(config_value, int):
+                                    value_to_apply = config_value # Use the integer directly
+                                
+                                if value_to_apply is not None:
+                                    details['Item_Value'] = value_to_apply
+                                    logger.trace(f"Applied static value override for '{item_name}': {value_to_apply}")
                             # --- END NEW LOGIC ---
 
                             details.update({
