@@ -169,7 +169,31 @@ rules = [
 # 'new' mode processes only new and previously unparsed logs.
 # 'all' mode clears all parsed data and re-processes everything from the raw logs.
 mode = "new"
-# parse definitions located further down
+
+# --- Game Mode Detection ---
+# Defines special game modes to isolate their data.
+# The value defines the icon(s) that must be present at the start of the message.
+#
+# Logic is interpreted as an "OR of ANDs":
+# - An outer list represents OR conditions.
+# - Inner lists (or a single flat list) represent AND conditions.
+
+[parse_settings.game_modes]
+# Example 1: Single Icon
+# A message must start with this one icon.
+# Leagues = "<:Leagues_IV_badge:123>"
+
+# Example 2: AND Logic
+# A message must start with BOTH icons, in order.
+# Gridmaster = ["<:Quest_badge:456>", "<:Speedrunner_badge:789>"]
+
+# Example 3: OR Logic
+# A message must start with EITHER the first icon OR the second icon.
+# Ironman = [["<:Ironman_badge:111>"], ["<:HCIM_badge:222>"], ["<:UIM_badge:333>"]]
+
+# Example 4: Complex AND/OR Logic
+# A message must match EITHER (Icon A AND Icon B) OR (Icon C).
+# UltimateGridmaster = [["<:Grid_A:101>", "<:Grid_B:202>"], ["<:Ultimate_badge:303>"]]
 
 
 #-----------------------------------------------------------------------
