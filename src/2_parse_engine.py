@@ -1,6 +1,7 @@
 # src/2_parse_engine.py
 
 import pandas as pd
+from datetime import datetime
 import re
 from sqlalchemy import text, inspect, exc
 from loguru import logger
@@ -11,6 +12,55 @@ from shared_utils import (
 from loguru_setup import loguru_setup
 
 SCRIPT_NAME = "2_parse_engine"
+
+def get_dynamic_price(item_id: str, broadcast_timestamp: str, price_engine) -> int | None:
+    """
+    Fetches the price for an item from the item_prices DB. It tries to find the price
+    for the exact date, then searches backward, then forward, before giving up.
+    """
+    if not price_engine:
+        return None
+
+    try:
+        broadcast_date = datetime.fromisoformat(broadcast_timestamp).strftime('%Y-%m-%d')
+        
+        with price_engine.connect() as connection:
+            # 1. Check for the price on the exact date
+            exact_date_query = text("""
+                SELECT avg_high_price FROM item_prices 
+                WHERE item_id = :item_id AND date(timestamp) = :broadcast_date
+            """)
+            result = connection.execute(exact_date_query, {"item_id": item_id, "broadcast_date": broadcast_date}).scalar_one_or_none()
+            if result is not None:
+                logger.trace(f"Found exact date price for item {item_id} on {broadcast_date}: {result}")
+                return int(result)
+
+            # 2. If not found, find the most recent price BEFORE the broadcast date
+            past_date_query = text("""
+                SELECT avg_high_price FROM item_prices
+                WHERE item_id = :item_id AND date(timestamp) < :broadcast_date
+                ORDER BY timestamp DESC
+                LIMIT 1
+            """)
+            result = connection.execute(past_date_query, {"item_id": item_id, "broadcast_date": broadcast_date}).scalar_one_or_none()
+            if result is not None:
+                logger.trace(f"Found nearest past price for item {item_id} near {broadcast_date}: {result}")
+                return int(result)
+
+            # 3. If still not found, find the earliest price AFTER the broadcast date
+            future_date_query = text("""
+                SELECT avg_high_price FROM item_prices
+                WHERE item_id = :item_id AND date(timestamp) > :broadcast_date
+                ORDER BY timestamp ASC
+                LIMIT 1
+            """)
+            result = connection.execute(future_date_query, {"item_id": item_id, "broadcast_date": broadcast_date}).scalar_one_or_none()
+            if result is not None:
+                logger.trace(f"Found nearest future price for item {item_id} near {broadcast_date}: {result}")
+                return int(result)
+    except Exception as e:
+        logger.warning(f"Could not fetch dynamic price for item_id {item_id} on {broadcast_date}. Error: {e}")
+    return None
 
 def apply_mappings(definition: dict, groups: tuple) -> dict:
     """Applies column mappings from config to regex groups."""
@@ -30,7 +80,7 @@ def apply_mappings(definition: dict, groups: tuple) -> dict:
                 details[col_name] = value.strip() if isinstance(value, str) else value
     return details
 
-def parse_raw_data(df_raw: pd.DataFrame, config: dict) -> (pd.DataFrame, pd.DataFrame, pd.DataFrame):
+def parse_raw_data(df_raw: pd.DataFrame, config: dict, price_engine) -> (pd.DataFrame, pd.DataFrame, pd.DataFrame):
     """Parses a DataFrame of raw logs using patterns from the config."""
     parsed_chat, parsed_broadcasts, unparsed_logs = [], [], []
     
@@ -83,17 +133,24 @@ def parse_raw_data(df_raw: pd.DataFrame, config: dict) -> (pd.DataFrame, pd.Data
                             item_name = details.get('Item_Name')
                             if not details.get('Item_Value') and item_name:
                                 config_value = item_value_overrides.get(item_name)
-                                value_to_apply = None
-                                if isinstance(config_value, list) and len(config_value) > 0:
-                                    value_to_apply = config_value[0] # Use the first element (the price)
-                                elif isinstance(config_value, int):
-                                    value_to_apply = config_value # Use the integer directly
-                                
-                                if value_to_apply is not None:
-                                    details['Item_Value'] = value_to_apply
-                                    logger.trace(f"Applied static value override for '{item_name}': {value_to_apply}")
-                            # --- END NEW LOGIC ---
+                                fallback_price = None
+                                dynamic_price = None
 
+                                if isinstance(config_value, list) and len(config_value) == 2:
+                                    fallback_price = config_value[0]
+                                    item_id = str(config_value[1])
+                                    dynamic_price = get_dynamic_price(item_id, timestamp, price_engine)
+                                    if dynamic_price:
+                                        logger.trace(f"Applied DYNAMIC price for '{item_name}': {dynamic_price:,}")
+                                    else:
+                                        logger.trace(f"Dynamic price not found for '{item_name}'. Using fallback: {fallback_price:,}")
+                                elif isinstance(config_value, int):
+                                    fallback_price = config_value
+                                
+                                # Prioritize dynamic price, otherwise use fallback
+                                details['Item_Value'] = dynamic_price if dynamic_price is not None else fallback_price
+                            # --- END NEW LOGIC ---
+                            
                             details.update({
                                 "raw_log_id": raw_log_id,
                                 "Broadcast_Type": group_def["broadcast_type"],
@@ -213,7 +270,13 @@ def main():
 
     raw_engine = get_db_engine(config['databases']['raw_db_uri'])
     parsed_engine = get_db_engine(config['databases']['parsed_db_uri'])
-    if not raw_engine or not parsed_engine: return
+    
+    # Create a separate engine for the item prices database
+    price_db_uri = "sqlite:///data/item_prices.db"
+    price_engine = get_db_engine(price_db_uri)
+
+    if not raw_engine or not parsed_engine:
+        return
 
     summary = ""
     try:
@@ -262,8 +325,8 @@ def main():
                 logger.info("No previously unparsed messages to re-process.")
                 df_to_parse = df_new_raw
 
-        # Pass the full config to the parse function
-        df_chat, df_broadcasts, df_unparsed = parse_raw_data(df_to_parse, config)
+        # Pass the full config and the price engine to the parse function
+        df_chat, df_broadcasts, df_unparsed = parse_raw_data(df_to_parse, config, price_engine)
 
         logger.info("Saving parsed data to the database (duplicates will be ignored)...")
         new_chats_count = save_df_with_ignore(df_chat, 'chat', parsed_engine)
@@ -312,6 +375,7 @@ def main():
             post_to_discord_webhook(webhook_url, summary)
         if raw_engine: raw_engine.dispose()
         if parsed_engine: parsed_engine.dispose()
+        if price_engine: price_engine.dispose()
         logger.info("Database connections closed.")
         logger.info(f"{f' Finished {SCRIPT_NAME} ':=^80}")
 
