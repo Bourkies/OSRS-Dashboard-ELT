@@ -18,6 +18,8 @@ project_name = "OSRS Discord Dashboard ELT"
 user_agent = ""
 # Delay in seconds between each API request to be polite to the API servers.
 request_delay_seconds = 1.0
+# min amount to time in hours before fetch_item_prices can be rerun
+min_time_between_runs = 24 
 
 [logging]
   level = "DEBUG" # TRACE DEBUG INFO SUCCESS WARNING ERROR CRITICAL

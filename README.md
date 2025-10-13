@@ -10,6 +10,7 @@ Please note AI has been extensively used in the creation of this project
 * **Discord Integration**: Fetches message history from a specified Discord channel.
 * **Advanced Regex Parsing**: Uses TOML configuration files to define complex regex patterns for parsing different message types (e.g., chat, drops, achievements).
 * **Local Database**: Uses a local SQLite database to store all raw, parsed, and transformed data, keeping the setup simple and self-contained.
+* **Dynamic Item Pricing**: Fetches historical item prices from the OSRS Wiki API to accurately value drops based on the date they were received.
 * **Automated Username & Record Management**:
     * Combine multiple historical usernames into a single current name.
     * Blacklist specific personal bests (or all PBs for a user) to maintain leaderboard integrity.

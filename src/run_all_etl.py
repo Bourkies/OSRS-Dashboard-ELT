@@ -4,10 +4,11 @@
 import sys
 import subprocess
 import time
+import json
 import re
 import os
 from pathlib import Path
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from loguru import logger
 
@@ -15,7 +16,7 @@ from loguru import logger
 project_root = Path(__file__).resolve().parent.parent
 
 from shared_utils import (
-    load_config, post_to_discord_webhook, LOGS_DIR, SUMMARIES_DIR
+    load_config, post_to_discord_webhook, LOGS_DIR, SUMMARIES_DIR, DATA_DIR
 )
 from loguru_setup import loguru_setup
 
@@ -107,11 +108,37 @@ def main():
 
     try:
         # Define the sequence of scripts to run
-        scripts_to_run = [
+        base_scripts = [
             '1_fetch_data.py',
             '2_parse_engine.py',
             '3_transform_data.py'
         ]
+        scripts_to_run = []
+
+        # --- Conditionally add 4_fetch_item_prices.py ---
+        min_hours = config.get('api_settings', {}).get('min_time_between_runs', 24)
+        state_file = DATA_DIR / 'price_fetch_state.json'
+        should_run_prices = True
+
+        # Only check the time if the state file exists and is not empty
+        if state_file.exists() and state_file.stat().st_size > 0:
+            try:
+                with open(state_file, 'r') as f:
+                    state = json.load(f)
+                    last_run_str = state.get('last_successful_run_utc')
+                    if last_run_str:
+                        last_run_time = datetime.fromisoformat(last_run_str)
+                        if datetime.now(timezone.utc) < last_run_time + timedelta(hours=min_hours):
+                            logger.info(f"Skipping '4_fetch_item_prices.py'. Last run was less than {min_hours} hours ago.")
+                            should_run_prices = False
+            except (json.JSONDecodeError, KeyError, ValueError) as e:
+                logger.warning(f"Could not read price fetch state file due to an error. Will run the script to be safe. Error: {e}")
+        
+        if should_run_prices:
+            # Insert before the parse engine
+            scripts_to_run.append('4_fetch_item_prices.py')
+        
+        scripts_to_run.extend(base_scripts)
 
         # Conditionally add the PB posting script based on the config
         # The user has renamed the script to include a '5_' prefix.
@@ -125,6 +152,13 @@ def main():
         for script_name in scripts_to_run:
             duration = run_script(src_path / script_name)
             execution_times[script_name] = f"{duration:.2f} seconds"
+
+            # If the price fetch script ran successfully, update its state file
+            if script_name == '4_fetch_item_prices.py' and should_run_prices:
+                logger.info("Updating state file for successful price fetch run.")
+                with open(state_file, 'w') as f:
+                    json.dump({'last_successful_run_utc': datetime.now(timezone.utc).isoformat()}, f)
+
 
         total_duration = time.time() - total_start_time
         
