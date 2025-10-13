@@ -277,7 +277,7 @@ broadcast_types = ["PvP Death"]
 # Used for generating data for the line/area charts.
 [[dashboard_settings.timeseries_reports]]
 report_name = "valuable_drops_timeseries"
-broadcast_type = "Valuable Drop"
+broadcast_type = ["Valuable Drop", "Clue Scroll Item", "Raid Loot"] # can take a single string or a list of strings to aggregate from multiple broadcast types.
 frequencies = ["6h", "D", "W"]
 
 [[dashboard_settings.timeseries_reports]]
