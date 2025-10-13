@@ -11,11 +11,6 @@
 project_name = "OSRS Discord Dashboard ELT"
 
 [api_settings]
-# A descriptive User-Agent is required by some APIs (like the OSRS Wiki prices API).
-# It helps them identify your application. Please set this to something unique.
-# Per the API documentation, this should identify your tool and a contact method.
-# Example: user_agent = "My Clan's Dashboard - Discord: myusername#1234"
-user_agent = ""
 # Delay in seconds between each API request to be polite to the API servers.
 request_delay_seconds = 1.0
 # min amount to time in hours before fetch_item_prices can be rerun
