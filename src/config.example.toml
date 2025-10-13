@@ -196,7 +196,7 @@ limit_per_type = 15
 [[dashboard_settings.leaderboard_reports]]
 report_name = "valuable_drops_summary"
 source_table = "clan_broadcasts"
-broadcast_type = "Valuable Drop"
+broadcast_type = ["Valuable Drop", "Raid Loot", "Clue Scroll Item"] # can use a single or a list of strings to aggergate from mutiple broadcast types.
 group_by_column = "Username"
 aggregations = { Count = "Username", Value = "Item_Value" }
 
