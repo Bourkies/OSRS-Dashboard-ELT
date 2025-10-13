@@ -10,6 +10,17 @@
 [general]
 project_name = "OSRS Discord Dashboard ELT"
 
+[api_settings]
+# A descriptive User-Agent is required by some APIs (like the OSRS Wiki prices API).
+# It helps them identify your application. Please set this to something unique.
+# Per the API documentation, this should identify your tool and a contact method.
+# Example: user_agent = "My Clan's Dashboard - Discord: myusername#1234"
+user_agent = ""
+# Delay in seconds between each API request to be polite to the API servers.
+request_delay_seconds = 1.0
+# min amount to time in hours before fetch_item_prices can be rerun
+min_time_between_runs = 24 
+
 [logging]
   level = "DEBUG" # TRACE DEBUG INFO SUCCESS WARNING ERROR CRITICAL
   file_path = "logs/app.log"
@@ -109,45 +120,46 @@ rules = [
 # to items that are parsed without one, such as from "Raid Loot" broadcasts.
 # The key is the exact item name, and the value is the integer price.
 # Underscores can be used in numbers for readability.
+# items may included just the GP value or as a list with as [GP value, "item ID"]
+# items with the item ID included will have item prices fetched for that time period fromt he OSRS wiki
 [item_value_overrides]
 # Updated 2025 07 02
 # CoX
-"Dexterous prayer scroll" = 16_000_000
-"Arcane prayer scroll" = 3_230_000
-"Twisted buckler" = 15_500_000
-"Dragon hunter crossbow" = 43_260_000
-"Dinh's bulwark" = 13_570_000
-"Ancestral hat" = 68_038_000
-"Ancestral robe top" = 173_830_000
-"Ancestral robe bottom" = 133_610_000
-"Dragon claws" = 60_940_000
-"Elder maul" = 125_870_000
-"Kodai insignia" = 99_070_000
-"Twisted bow" = 1_486_480_000
+"Dexterous prayer scroll" = [16_000_000, "21034"]
+"Arcane prayer scroll" = [3_230_000, "21079"]
+"Twisted buckler" = [15_500_000, "21000"]
+"Dragon hunter crossbow" = [43_260_000, "21012"]
+"Dinh's bulwark" = [13_570_000, "21015"]
+"Ancestral hat" = [68_038_000, "21018"]
+"Ancestral robe top" = [173_830_000, "21021"]
+"Ancestral robe bottom" = [133_610_000, "21024"]
+"Dragon claws" = [60_940_000, "13652"]
+"Elder maul" = [125_870_000, "21003"]
+"Kodai insignia" = [99_070_000, "21043"]
+"Twisted bow" = [1_486_480_000, "20997"]
 
 # ToB
-"Avernic defender hilt" = 46_990_000
-"Ghrazi rapier" = 36_510_000
-"Sanguinesti staff (uncharged)" = 53_500_000
-"Justiciar faceguard" = 10_320_000
-"Justiciar chestguard" = 11_460_000
-"Justiciar legguards" = 8_610_000
-"Scythe of vitur (uncharged)" = 1_642_470_000
+"Avernic defender hilt" = [46_990_000, "22477"]
+"Ghrazi rapier" = [36_510_000, "22324"]
+"Sanguinesti staff (uncharged)" = [53_500_000, "22481"]
+"Justiciar faceguard" = [10_320_000, "22326"]
+"Justiciar chestguard" = [11_460_000, "22327"]
+"Justiciar legguards" = [8_610_000, "22328"]
+"Scythe of vitur (uncharged)" = [1_642_470_000, "22486"]
 
 # ToA
-"Osmumten's fang" = 21_670_000
-"Lightbearer" = 4_970_000
-"Elidinis' ward" = 3_620_000
-"Masori mask" = 5_090_000
-"Masori body" = 34_740_000
-"Masori chaps" = 25_080_000
-"Tumeken's shadow (uncharged)" = 1_031_620_000
+"Osmumten's fang" = [21_670_000, "26219"]
+"Lightbearer" = [4_970_000, "25975"]
+"Elidinis' ward" = [3_620_000, "25985"]
+"Masori mask" = [5_090_000, "27226"]
+"Masori body" = [34_740_000, "27229"]
+"Masori chaps" = [25_080_000, "27232"]
+"Tumeken's shadow (uncharged)" = [1_031_620_000, "27277"]
 
 # idiots getting lured for max cash
 # didnt feel like editing the code so creates an item to attach to it
 # This will probably cause issues down the line, future issue, good for now!
 "an extraordinary amount of loot" = 2_147_483_647
-
 
 #-----------------------------------------------------------------------
 # Parse settings
@@ -196,7 +208,7 @@ limit_per_type = 15
 [[dashboard_settings.leaderboard_reports]]
 report_name = "valuable_drops_summary"
 source_table = "clan_broadcasts"
-broadcast_type = "Valuable Drop"
+broadcast_type = ["Valuable Drop", "Raid Loot", "Clue Scroll Item"] # can use a single or a list of strings to aggergate from mutiple broadcast types.
 group_by_column = "Username"
 aggregations = { Count = "Username", Value = "Item_Value" }
 
@@ -277,7 +289,7 @@ broadcast_types = ["PvP Death"]
 # Used for generating data for the line/area charts.
 [[dashboard_settings.timeseries_reports]]
 report_name = "valuable_drops_timeseries"
-broadcast_type = "Valuable Drop"
+broadcast_type = ["Valuable Drop", "Clue Scroll Item", "Raid Loot"] # can take a single string or a list of strings to aggregate from multiple broadcast types.
 frequencies = ["6h", "D", "W"]
 
 [[dashboard_settings.timeseries_reports]]

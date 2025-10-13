@@ -183,7 +183,13 @@ def generate_leaderboard_reports(df_chat, df_broadcasts, config, periods):
             df_filtered = df_source.copy()
 
             if 'broadcast_type' in rc:
-                df_filtered = df_filtered[df_filtered['Broadcast_Type'] == rc['broadcast_type']]
+                broadcast_types = rc['broadcast_type']
+                if isinstance(broadcast_types, str):
+                    # Handle the original case of a single string for backward compatibility
+                    df_filtered = df_filtered[df_filtered['Broadcast_Type'] == broadcast_types]
+                elif isinstance(broadcast_types, list):
+                    # Handle the new case of a list of strings
+                    df_filtered = df_filtered[df_filtered['Broadcast_Type'].isin(broadcast_types)]
             
             if 'item_name_filter' in rc:
                  df_filtered = df_filtered[df_filtered['Item_Name'] == rc['item_name_filter']]
@@ -286,7 +292,14 @@ def generate_timeseries_reports(df_source, config):
     for rc in report_configs:
         try:
             name = rc['report_name']
-            df_filtered = df_source[df_source['Broadcast_Type'] == rc['broadcast_type']].copy()
+            
+            broadcast_types = rc['broadcast_type']
+            if isinstance(broadcast_types, str):
+                # Handle the original case of a single string for backward compatibility
+                df_filtered = df_source[df_source['Broadcast_Type'] == broadcast_types].copy()
+            elif isinstance(broadcast_types, list):
+                # Handle the new case of a list of strings
+                df_filtered = df_source[df_source['Broadcast_Type'].isin(broadcast_types)].copy()
             
             if df_filtered.empty: 
                 logger.info(f"--> No data for timeseries report '{name}', creating empty table.")
