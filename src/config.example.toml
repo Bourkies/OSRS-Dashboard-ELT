@@ -24,6 +24,13 @@ min_time_between_runs = 24
   format = "{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {name: <10.10}:{function: <10.10}:{line: <4} | {message}"
 
 #-----------------------------------------------------------------------
+# Trandform data settings
+#-----------------------------------------------------------------------
+[transform_data]
+# set if the transform data script post a list of created tables (true) or just summary (false)
+post_detailed_table = false
+
+#-----------------------------------------------------------------------
 # ETL Runner Settings
 #-----------------------------------------------------------------------
 # Use these switches to enable or disable parts of the pipeline.

@@ -768,15 +768,20 @@ def main():
                 df_report.to_sql(name, optimised_engine, if_exists='replace', index=False)
                 summary_stats[name] = len(df_report)
         
-        table_counts_str = "\n".join([f"- `{name}`: `{count}` rows" for name, count in sorted(summary_stats.items())])
+        table_counts_str = ""
+        if config.get('transform_data', {}).get('post_detailed_table', False):
+            table_counts_list_str = "\n".join([f"- `{name}`: `{count}` rows" for name, count in sorted(summary_stats.items())])
+            if table_counts_list_str:
+                table_counts_str = f"\n**Created Table Row Counts:**\n{table_counts_list_str}"
+
         summary = (
             f"**✅ {config.get('general', {}).get('project_name', 'Unnamed Project')}: {SCRIPT_NAME} Complete**\n\n"
             f"**Run Time:** `{run_time.strftime('%Y-%m-%d %H:%M:%S UTC')}`\n"
             f"**Transformation Results:**\n"
             f"- Broadcasts Processed: `{len(df_broadcasts)}`\n"
             f"- Chat Messages Processed: `{len(df_chat)}`\n"
-            f"- Optimised Tables Created: `{len(summary_stats)}`\n\n"
-            f"**Created Table Row Counts:**\n{table_counts_str}"
+            f"- Optimised Tables Created: `{len(summary_stats)}`"
+            f"{table_counts_str}"
         )
         write_summary_file(SCRIPT_NAME, summary)
         
