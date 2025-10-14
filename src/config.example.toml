@@ -11,11 +11,6 @@
 project_name = "OSRS Discord Dashboard ELT"
 
 [api_settings]
-# A descriptive User-Agent is required by some APIs (like the OSRS Wiki prices API).
-# It helps them identify your application. Please set this to something unique.
-# Per the API documentation, this should identify your tool and a contact method.
-# Example: user_agent = "My Clan's Dashboard - Discord: myusername#1234"
-user_agent = ""
 # Delay in seconds between each API request to be polite to the API servers.
 request_delay_seconds = 1.0
 # min amount to time in hours before fetch_item_prices can be rerun
@@ -27,6 +22,13 @@ min_time_between_runs = 24
   rotation = "10 MB"
   retention = "7 days"
   format = "{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {name: <10.10}:{function: <10.10}:{line: <4} | {message}"
+
+#-----------------------------------------------------------------------
+# Trandform data settings
+#-----------------------------------------------------------------------
+[transform_data]
+# set if the transform data script post a list of created tables (true) or just summary (false)
+post_detailed_table = false
 
 #-----------------------------------------------------------------------
 # ETL Runner Settings
@@ -169,7 +171,31 @@ rules = [
 # 'new' mode processes only new and previously unparsed logs.
 # 'all' mode clears all parsed data and re-processes everything from the raw logs.
 mode = "new"
-# parse definitions located further down
+
+# --- Game Mode Detection ---
+# Defines special game modes to isolate their data.
+# The value defines the icon(s) that must be present at the start of the message.
+#
+# Logic is interpreted as an "OR of ANDs":
+# - An outer list represents OR conditions.
+# - Inner lists (or a single flat list) represent AND conditions.
+
+[parse_settings.game_modes]
+# Example 1: Single Icon
+# A message must start with this one icon.
+# Leagues = "<:Leagues_IV_badge:123>"
+
+# Example 2: AND Logic
+# A message must start with BOTH icons, in order.
+# Gridmaster = ["<:Quest_badge:456>", "<:Speedrunner_badge:789>"]
+
+# Example 3: OR Logic
+# A message must start with EITHER the first icon OR the second icon.
+# Ironman = [["<:Ironman_badge:111>"], ["<:HCIM_badge:222>"], ["<:UIM_badge:333>"]]
+
+# Example 4: Complex AND/OR Logic
+# A message must match EITHER (Icon A AND Icon B) OR (Icon C).
+# UltimateGridmaster = [["<:Grid_A:101>", "<:Grid_B:202>"], ["<:Ultimate_badge:303>"]]
 
 
 #-----------------------------------------------------------------------

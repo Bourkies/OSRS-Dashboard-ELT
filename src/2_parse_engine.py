@@ -80,19 +80,56 @@ def apply_mappings(definition: dict, groups: tuple) -> dict:
                 details[col_name] = value.strip() if isinstance(value, str) else value
     return details
 
-def parse_raw_data(df_raw: pd.DataFrame, config: dict, price_engine) -> (pd.DataFrame, pd.DataFrame, pd.DataFrame):
+def detect_game_mode(content: str, game_modes_config: dict) -> str | None:
+    """
+    Checks if a message content starts with any of the configured game mode icon patterns.
+    Returns the name of the first matching game mode, or None.
+    """
+    if not game_modes_config:
+        return None
+
+    for mode_name, rules in game_modes_config.items():
+        # Case 1: Single Icon (string)
+        if isinstance(rules, str):
+            if content.startswith(rules):
+                logger.trace(f"Detected game mode '{mode_name}' for message: {content}")
+                return mode_name
+        
+        # Case 2: List of rules (AND or OR logic)
+        elif isinstance(rules, list) and rules:
+            # Check if it's a simple AND list (list of strings)
+            if isinstance(rules[0], str):
+                prefix = "".join(rules)
+                if content.startswith(prefix):
+                    logger.trace(f"Detected game mode '{mode_name}' for message: {content}")
+                    return mode_name
+            
+            # Check if it's an OR of ANDs (list of lists of strings)
+            elif isinstance(rules[0], list):
+                for sub_rule_list in rules:
+                    if isinstance(sub_rule_list, list):
+                        prefix = "".join(sub_rule_list)
+                        if content.startswith(prefix):
+                            logger.trace(f"Detected game mode '{mode_name}' for message: {content}")
+                            return mode_name
+    
+    return None
+
+def parse_raw_data(df_raw: pd.DataFrame, config: dict, price_engine) -> (pd.DataFrame, pd.DataFrame, pd.DataFrame, int):
     """Parses a DataFrame of raw logs using patterns from the config."""
     parsed_chat, parsed_broadcasts, unparsed_logs = [], [], []
-    
+    game_mode_messages_found = 0
+
     # Get necessary configs at the start
     patterns_config = config.get('patterns', {})
     item_value_overrides = config.get('item_value_overrides', {})
+    game_modes_config = config.get('parse_settings', {}).get('game_modes', {})
 
     logger.info(f"Starting to parse {len(df_raw)} raw messages...")
     if df_raw.empty:
         logger.info("--> No messages to parse.")
-        # Return empty dataframes with correct columns to prevent KeyErrors later
-        return pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
+        # Return empty dataframes and zero count
+        return pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), 0
 
     for index, row in df_raw.iterrows():
         raw_log_id = row['id']
@@ -129,6 +166,14 @@ def parse_raw_data(df_raw: pd.DataFrame, config: dict, price_engine) -> (pd.Data
                         is_valid = all(details.get(col) is not None and str(details.get(col)).strip() != '' for col in variant.get("required_columns", []))
                         
                         if is_valid:
+                            # --- NEW: Check for game mode and prefix the broadcast type ---
+                            original_broadcast_type = group_def["broadcast_type"]
+                            matched_game_mode = detect_game_mode(clean_content, game_modes_config)
+                            final_broadcast_type = original_broadcast_type
+                            if matched_game_mode:
+                                final_broadcast_type = f"({matched_game_mode}) {original_broadcast_type}"
+                                game_mode_messages_found += 1
+
                             # --- NEW: Apply item value override right after parsing ---
                             item_name = details.get('Item_Name')
                             if not details.get('Item_Value') and item_name:
@@ -153,7 +198,7 @@ def parse_raw_data(df_raw: pd.DataFrame, config: dict, price_engine) -> (pd.Data
                             
                             details.update({
                                 "raw_log_id": raw_log_id,
-                                "Broadcast_Type": group_def["broadcast_type"],
+                                "Broadcast_Type": final_broadcast_type,
                                 "Timestamp": timestamp,
                                 "Content": clean_content
                             })
@@ -178,14 +223,14 @@ def parse_raw_data(df_raw: pd.DataFrame, config: dict, price_engine) -> (pd.Data
 
                                 # Now check if the processed string looks like it has multiple users
                                 if ',' in processed_username_str or ' and ' in processed_username_str:
-                                    logger.debug(f"Potential multi-user broadcast detected for type '{group_def['broadcast_type']}'. Processed username string: '{raw_username_str}'")
+                                    logger.debug(f"Potential multi-user broadcast detected for type '{original_broadcast_type}'. Processed username string: '{raw_username_str}'")
                                     logger.debug(f'Names Found: {processed_username_str}')
 
                                     # Normalize separators by replacing commas, then split by ' and '
                                     normalized_str = processed_username_str.replace(',', ' and ')
                                     username_list = [name.strip() for name in normalized_str.split(' and ') if name.strip()]
                                     
-                                    logger.debug(f"Split usernames into: {username_list}")
+                                    logger.trace(f"Split usernames into: {username_list}")
 
                                     for user in username_list:
                                         user_details = details.copy()
@@ -202,7 +247,7 @@ def parse_raw_data(df_raw: pd.DataFrame, config: dict, price_engine) -> (pd.Data
                             is_parsed = True
                             break
                         else:
-                             failure_reason = f"Required column blank for Broadcast Type '{group_def['broadcast_type']}'."
+                             failure_reason = f"Required column blank for Broadcast Type '{group_def.get('broadcast_type', 'Unknown')}'."
                 if is_parsed:
                     break
 
@@ -219,7 +264,7 @@ def parse_raw_data(df_raw: pd.DataFrame, config: dict, price_engine) -> (pd.Data
     df_unparsed = pd.DataFrame(unparsed_logs)
     
     logger.info(f"--> Parsing complete. Found {len(df_chat)} chat, {len(df_broadcasts)} broadcasts, and {len(df_unparsed)} unparsed messages from this run.")
-    return df_chat, df_broadcasts, df_unparsed
+    return df_chat, df_broadcasts, df_unparsed, game_mode_messages_found
 
 def get_all_ids_from_table(engine, table_name, column_name="raw_log_id"):
     """Gets all IDs from a specific column in a table."""
@@ -326,7 +371,7 @@ def main():
                 df_to_parse = df_new_raw
 
         # Pass the full config and the price engine to the parse function
-        df_chat, df_broadcasts, df_unparsed = parse_raw_data(df_to_parse, config, price_engine)
+        df_chat, df_broadcasts, df_unparsed, game_mode_count = parse_raw_data(df_to_parse, config, price_engine)
 
         logger.info("Saving parsed data to the database (duplicates will be ignored)...")
         new_chats_count = save_df_with_ignore(df_chat, 'chat', parsed_engine)
@@ -359,6 +404,7 @@ def main():
             f"**Parse Results (This Run):**\n"
             f"- Messages Processed: `{len(df_to_parse)}`\n"
             f"- New Chat Messages Added: `{new_chats_count}`\n"
+            f"- Game Mode Broadcasts Found: `{game_mode_count}`\n"
             f"- New Broadcasts Added: `{new_broadcasts_count}`\n\n"
             f"**⚠️ Total Unparsed Messages in DB:** `{total_unparsed}`"
         )

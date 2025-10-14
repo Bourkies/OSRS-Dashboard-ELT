@@ -53,26 +53,24 @@ def cleanup_old_files(directory: Path, retention_days: int):
     logger.info(f"--> Cleanup complete for '{directory.name}'. Deleted {files_deleted} old files.")
 
 
-def run_script(script_path: Path) -> float:
-    """Runs a given Python script as a subprocess and returns its execution time."""
+def run_script(script_path: Path, stop_on_error: bool = True) -> float:
+    """Runs a Python script as a subprocess and returns its execution time."""
     start_time = time.time()
     logger.info(f"{f' Starting execution of {script_path.name} ':=^80}")
     try:
-        # Use sys.executable to ensure the same Python interpreter is used
         result = subprocess.run(
             [sys.executable, str(script_path)],
             check=True,
-            # By removing `capture_output=True`, the child process's stdout and stderr
-            # will be streamed directly to the console in real-time.
             text=True,
             encoding='utf-8'
         )
         logger.success(f"--- Finished {script_path.name} successfully ---")
     except subprocess.CalledProcessError as e:
-        logger.critical(f"--- FATAL ERROR during execution of {script_path.name} ---")
+        log_level = "CRITICAL" if stop_on_error else "WARNING"
+        log_message = "FATAL ERROR" if stop_on_error else "Error"
+        logger.log(log_level, f"--- {log_message} during execution of {script_path.name} ---")
         logger.error(f"Return Code: {e.returncode}")
-        # The specific error from the script will have been printed to the console just before this.
-        # Re-raise the exception to stop the entire pipeline
+        # Re-raise the exception so the caller can handle it.
         raise e
     
     end_time = time.time()
@@ -109,39 +107,32 @@ def main():
     try:
         # Define the sequence of scripts to run
         base_scripts = [
+            '4_fetch_item_prices.py',
             '1_fetch_data.py',
             '2_parse_engine.py',
             '3_transform_data.py'
         ]
-        scripts_to_run = []
+        scripts_to_run = list(base_scripts) # Start with a copy of the base scripts
 
-        # --- Conditionally add 4_fetch_item_prices.py ---
+        # --- Conditionally skip 4_fetch_item_prices.py ---
         min_hours = config.get('api_settings', {}).get('min_time_between_runs', 24)
-        state_file = DATA_DIR / 'price_fetch_state.json'
-        should_run_prices = True
+        state_file = DATA_DIR / 'ETL_state.json'
+        price_fetcher_script_name = '4_fetch_item_prices.py'
 
-        # Only check the time if the state file exists and is not empty
         if state_file.exists() and state_file.stat().st_size > 0:
             try:
                 with open(state_file, 'r') as f:
                     state = json.load(f)
-                    last_run_str = state.get('last_successful_run_utc')
+                    last_run_str = state.get('price_fetcher', {}).get('last_successful_run_utc')
                     if last_run_str:
                         last_run_time = datetime.fromisoformat(last_run_str)
                         if datetime.now(timezone.utc) < last_run_time + timedelta(hours=min_hours):
-                            logger.info(f"Skipping '4_fetch_item_prices.py'. Last run was less than {min_hours} hours ago.")
-                            should_run_prices = False
+                            logger.info(f"Skipping '{price_fetcher_script_name}'. Last run was less than {min_hours} hours ago.")
+                            scripts_to_run.remove(price_fetcher_script_name)
             except (json.JSONDecodeError, KeyError, ValueError) as e:
-                logger.warning(f"Could not read price fetch state file due to an error. Will run the script to be safe. Error: {e}")
-        
-        if should_run_prices:
-            # Insert before the parse engine
-            scripts_to_run.append('4_fetch_item_prices.py')
-        
-        scripts_to_run.extend(base_scripts)
+                logger.warning(f"Could not read state file due to an error. Will attempt to run all scripts. Error: {e}")
 
         # Conditionally add the PB posting script based on the config
-        # The user has renamed the script to include a '5_' prefix.
         if config.get('etl_runner', {}).get('run_post_pbs_script', True):
             scripts_to_run.append('5_post_pbs_to_discord.py')
         else:
@@ -150,15 +141,39 @@ def main():
         # Execute each script
         src_path = Path(__file__).parent
         for script_name in scripts_to_run:
-            duration = run_script(src_path / script_name)
-            execution_times[script_name] = f"{duration:.2f} seconds"
+            try:
+                # The price fetcher is allowed to fail without stopping the pipeline
+                stop_on_error = script_name != price_fetcher_script_name
+                duration = run_script(src_path / script_name, stop_on_error=stop_on_error)
+                # This line is only reached if run_script succeeds
+                execution_times[script_name] = f"{duration:.2f} seconds"
+            except subprocess.CalledProcessError:
+                if stop_on_error:
+                    raise  # Re-raise to enter the main exception block and stop the pipeline
+                # For price fetcher, record the failure and continue
+                execution_times[script_name] = "⚠️ Failed (check logs)"
+                continue
 
             # If the price fetch script ran successfully, update its state file
-            if script_name == '4_fetch_item_prices.py' and should_run_prices:
-                logger.info("Updating state file for successful price fetch run.")
-                with open(state_file, 'w') as f:
-                    json.dump({'last_successful_run_utc': datetime.now(timezone.utc).isoformat()}, f)
+            # We check that the value in execution_times is not the failure message.
+            if script_name == price_fetcher_script_name and "Failed" not in str(execution_times.get(script_name)):
 
+                logger.info(f"Updating state file for successful '{price_fetcher_script_name}' run.")
+                
+                # Load existing state to not overwrite other keys
+                current_state = {}
+                if state_file.exists() and state_file.stat().st_size > 0:
+                    with open(state_file, 'r') as f:
+                        try:
+                            current_state = json.load(f)
+                        except json.JSONDecodeError:
+                            logger.warning("Could not parse existing state file. It will be overwritten.")
+                
+                # Update only the price_fetcher part of the state
+                current_state['price_fetcher'] = {'last_successful_run_utc': datetime.now(timezone.utc).isoformat()}
+                
+                with open(state_file, 'w') as f:
+                    json.dump(current_state, f, indent=4)
 
         total_duration = time.time() - total_start_time
         

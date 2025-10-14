@@ -692,16 +692,38 @@ def main():
     loguru_setup(config, PROJECT_ROOT)
     logger.info(f"{f' Starting {SCRIPT_NAME} ':=^80}")
     
+    # --- Blue/Green Database Selection ---
+    primary_db_uri = config['databases']['optimised_db_uri']
+    target_db_uri = primary_db_uri
+    target_db_path_for_summary = "Remote DB"
+
+    if primary_db_uri.startswith('sqlite'):
+        primary_db_path_str = primary_db_uri.split('///')[1]
+        primary_db_path = (PROJECT_ROOT / primary_db_path_str).resolve()
+        
+        # Define the alternate DB path. E.g., 'data/optimised_data.db' -> 'data/optimised_data_alt.db'
+        alt_db_path = primary_db_path.with_stem(f"{primary_db_path.stem}_alt")
+
+        primary_mtime = primary_db_path.stat().st_mtime if primary_db_path.exists() else 0
+        alt_mtime = alt_db_path.stat().st_mtime if alt_db_path.exists() else 0
+
+        logger.info("Determining which optimised database to update (blue/green strategy)...")
+        logger.info(f"  - Primary DB ({primary_db_path.name}) last modified: {datetime.fromtimestamp(primary_mtime).strftime('%Y-%m-%d %H:%M:%S') if primary_mtime else 'N/A'}")
+        logger.info(f"  - Alternate DB ({alt_db_path.name}) last modified: {datetime.fromtimestamp(alt_mtime).strftime('%Y-%m-%d %H:%M:%S') if alt_mtime else 'N/A'}")
+
+        if primary_mtime <= alt_mtime:
+            target_db_path = primary_db_path
+            logger.info(f"--> Target for this run is the PRIMARY database: {target_db_path.name}")
+        else:
+            target_db_path = alt_db_path
+            logger.info(f"--> Target for this run is the ALTERNATE database: {target_db_path.name}")
+
+        target_db_uri = f"sqlite:///{target_db_path}"
+        target_db_path_for_summary = str(target_db_path.relative_to(PROJECT_ROOT))
+
     parsed_engine = get_db_engine(config['databases']['parsed_db_uri'])
-    optimised_db_uri = config['databases']['optimised_db_uri']
-
-    if optimised_db_uri.startswith('sqlite'):
-        db_file_path = (PROJECT_ROOT / optimised_db_uri.split('///')[1]).resolve()
-        if os.path.exists(db_file_path):
-            logger.info(f"Existing optimised database found at '{db_file_path}'. Deleting it.")
-            os.remove(db_file_path)
-
-    optimised_engine = get_db_engine(optimised_db_uri)
+    optimised_engine = get_db_engine(target_db_uri)
+    
     if not parsed_engine or not optimised_engine: return
 
     summary_stats = {}
@@ -768,15 +790,21 @@ def main():
                 df_report.to_sql(name, optimised_engine, if_exists='replace', index=False)
                 summary_stats[name] = len(df_report)
         
-        table_counts_str = "\n".join([f"- `{name}`: `{count}` rows" for name, count in sorted(summary_stats.items())])
+        table_counts_str = ""
+        if config.get('transform_data', {}).get('post_detailed_table', False):
+            table_counts_list_str = "\n".join([f"- `{name}`: `{count}` rows" for name, count in sorted(summary_stats.items())])
+            if table_counts_list_str:
+                table_counts_str = f"\n**Created Table Row Counts:**\n{table_counts_list_str}"
+
         summary = (
             f"**✅ {config.get('general', {}).get('project_name', 'Unnamed Project')}: {SCRIPT_NAME} Complete**\n\n"
             f"**Run Time:** `{run_time.strftime('%Y-%m-%d %H:%M:%S UTC')}`\n"
             f"**Transformation Results:**\n"
             f"- Broadcasts Processed: `{len(df_broadcasts)}`\n"
             f"- Chat Messages Processed: `{len(df_chat)}`\n"
-            f"- Optimised Tables Created: `{len(summary_stats)}`\n\n"
-            f"**Created Table Row Counts:**\n{table_counts_str}"
+            f"- Optimised Tables Created: `{len(summary_stats)}`\n"
+            f"- **Updated Database:** `{target_db_path_for_summary}`"
+            f"{table_counts_str}"
         )
         write_summary_file(SCRIPT_NAME, summary)
         
