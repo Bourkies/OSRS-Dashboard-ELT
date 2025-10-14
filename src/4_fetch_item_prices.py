@@ -1,5 +1,6 @@
 import requests
 import pandas as pd
+import sys
 from datetime import datetime, timedelta, timezone
 import json
 import time
@@ -20,7 +21,7 @@ def get_or_update_item_mapping(config: dict, force_update: bool = False) -> dict
     An update can be forced if a configured item is not found in the local cache.
     """
     mapping_file = PROJECT_ROOT / 'data' / 'item_mapping.json'
-    user_agent = config.get('secrets', {}).get('wiki_user_agent', 'OSRS-Dashboard-ETL')
+    user_agent = config.get('secrets', {}).get('api_settings', {}).get('user_agent')
     
     if not force_update and mapping_file.exists():
         logger.info("Loading cached item mapping from file...")
@@ -102,16 +103,13 @@ def main():
     logger.info(f"{f' Starting {SCRIPT_NAME} ':=^80}")
 
     # --- Configuration ---
-    api_settings = config.get('api_settings', {})
-    user_agent = config.get('secrets', {}).get('wiki_user_agent')
+    api_settings = config.get('secrets', {}).get('api_settings', {})
+    user_agent = api_settings.get('user_agent')
     request_delay = api_settings.get('request_delay_seconds', 1.0)
 
     if not user_agent or "YOUR_APP_NAME" in user_agent:
-        logger.critical(
-            "A valid User-Agent is required for the Wiki API. "
-            "Please set 'wiki_user_agent' in your secrets.toml file."
-        )
-        return
+        logger.critical("A valid User-Agent is required for the Wiki API. Please set 'user_agent' in the [api_settings] section of your secrets.toml file.")
+        sys.exit(1)
 
     # Get the list of items to track from the item_value_overrides section
     all_item_overrides = config.get('item_value_overrides', {})
