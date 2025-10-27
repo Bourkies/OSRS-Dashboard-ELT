@@ -110,6 +110,7 @@ def main():
             '4_fetch_item_prices.py',
             '1_fetch_data.py',
             '2_parse_engine.py',
+            '6_fetch_name_changes.py',
             '3_transform_data.py'
         ]
         scripts_to_run = list(base_scripts) # Start with a copy of the base scripts
