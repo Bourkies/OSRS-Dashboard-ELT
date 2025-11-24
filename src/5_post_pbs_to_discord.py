@@ -288,7 +288,34 @@ async def main():
         logger.critical("Error: 'optimised_db_uri' not defined in [databases] section of config.toml")
         sys.exit(1)
 
-    optimised_engine = get_db_engine(optimised_db_uri)
+    # --- Determine the newest database for Blue/Green deployment by checking for an '_alt' version ---
+    newest_uri = None
+    try:
+        # URI format is assumed to be 'sqlite:///path/to/db.file'
+        main_path = Path(optimised_db_uri.split('///', 1)[-1])
+        
+        # Construct the alternate database path by adding '_alt' before the file extension
+        alt_filename = f"{main_path.stem}_alt{main_path.suffix}"
+        alt_path = main_path.with_name(alt_filename)
+
+        main_mod_time = main_path.stat().st_mtime if main_path.exists() else -1
+        alt_mod_time = alt_path.stat().st_mtime if alt_path.exists() else -1
+
+        if main_mod_time > alt_mod_time:
+            newest_uri = optimised_db_uri
+            logger.info(f"Using main database, it's the newest: {main_path.name}")
+        elif alt_mod_time > -1:
+            # Reconstruct the URI for the alternate database
+            newest_uri = f"sqlite:///{alt_path.as_posix()}"
+            logger.info(f"Using alternate database, it's the newest: {alt_path.name}")
+        elif main_mod_time > -1: # Fallback to main if alt doesn't exist
+            newest_uri = optimised_db_uri
+            logger.info(f"Using main database, alternate not found: {main_path.name}")
+
+    except OSError as e:
+        logger.error(f"Could not access database files to check timestamps: {e}")
+
+    optimised_engine = get_db_engine(newest_uri) if newest_uri else None
     pb_df = pd.DataFrame() # Default to empty DataFrame
     if optimised_engine:
         try:
