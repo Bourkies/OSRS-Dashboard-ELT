@@ -23,6 +23,7 @@ other_group_name = "Miscellaneous PBs"
 # Default sorting for the dashboard. Options: "config", "alphabetical"
 default_group_sort = "config"
 default_item_sort = "config" # Or "config" to sort by the order below
+recent_PB_count = 5 # add this number of the latest PB's to the miscellaneous PB's post, disabled if set to 0
 
 # --- Personal Best Blacklist ---
 # Use this to prevent certain users from holding records.
