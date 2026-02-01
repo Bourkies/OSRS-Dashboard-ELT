@@ -116,6 +116,28 @@ rules = [
 ]
 
 #-----------------------------------------------------------------------
+# Exclusion Settings (Temporary Game Modes)
+#-----------------------------------------------------------------------
+# Exclude specific data types within time ranges (e.g. for Deadman Mode or Leagues)
+# where the raw data lacks identifying icons.
+# - start_date / end_date: UTC time in "YYYY-MM-DD HH:MM" format.
+# - exclude_types: List of "Broadcast_Type" to ignore. 
+#   Common types: "Valuable Drop", "Pet", "PvP Kill", "Level Up", or "All Broadcasts" (special keyword).
+
+# [exclusion_settings]
+# [[exclusion_settings.ranges]]
+# description = "Deadman Mode: Armageddon"
+# start_date = "2024-07-19 17:00"
+# end_date = "2024-08-03 17:00"
+# exclude_types = ["All Broadcasts"] 
+
+# [[exclusion_settings.ranges]]
+# description = "Leagues IV: Trailblazer Reloaded"
+# start_date = "2023-11-15 12:00"
+# end_date = "2024-01-10 12:00"
+# exclude_types = ["Level Up", "Quest", "Combat Task"]
+
+#-----------------------------------------------------------------------
 # Item Value Overrides
 #-----------------------------------------------------------------------
 # Used in the transform step (3_transform_data.py) to assign a value

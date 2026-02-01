@@ -219,6 +219,34 @@ class PBPosterClient(discord.Client):
             message_id = self.state.get(group_title)
             embed = create_embed_for_group(embed_group_data, has_records=has_db_records, timestamp=update_timestamp)
             
+            # --- Append Recent Clan Records to Miscellaneous Group ---
+            if group_title == other_group_name:
+                recent_count = self.pb_config.get('recent_PB_count', 0)
+                if recent_count > 0 and not self.pb_df.empty:
+                    # Filter for records with a date (excludes historical ones without dates)
+                    df_recent = self.pb_df[self.pb_df['Date'].notna()].copy()
+                    if not df_recent.empty:
+                        df_recent.sort_values(by='Date', ascending=False, inplace=True)
+                        top_recent = df_recent.head(recent_count)
+                        
+                        recent_lines = []
+                        for _, row in top_recent.iterrows():
+                            # Format: Name/s (bold) \n * Content (italic)
+                            recent_lines.append(f"* **{row['Holder']}**\n  * *{row['Task']} - {row['Time']}*")
+                        
+                        if recent_lines:
+                            separator = "\n\n" + "─" * 20 + "\n\n"
+                            header = "**🏆 Newest Clan Records**\n"
+                            recent_section = header + "\n".join(recent_lines)
+                            
+                            current_desc = embed.description if embed.description != "No records to display in this category." else ""
+                            new_desc = current_desc + (separator if current_desc else "") + recent_section
+                            
+                            if len(new_desc) > 4096:
+                                new_desc = new_desc[:4093] + "..."
+                            
+                            embed.description = new_desc
+
             image_path_str = group_from_toml.get('Image')
             discord_file = None
             if image_path_str:

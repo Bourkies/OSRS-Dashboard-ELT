@@ -167,6 +167,59 @@ def apply_username_mapping(df, rules, username_columns):
     
     return df_copy
 
+# --- Exclusion Functions ---
+
+def apply_exclusion_filters(df, config):
+    """Filters out records based on configured date ranges and types."""
+    exclusion_ranges = config.get('exclusion_settings', {}).get('ranges', [])
+    if not exclusion_ranges or df.empty:
+        return df
+
+    logger.info("Applying exclusion filters (Temporary Game Modes)...")
+    initial_count = len(df)
+    
+    # Create a mask for rows to DROP
+    drop_mask = pd.Series(False, index=df.index)
+
+    for rule in exclusion_ranges:
+        try:
+            start_str = rule.get('start_date')
+            end_str = rule.get('end_date')
+            exclude_types = rule.get('exclude_types', [])
+            
+            if not start_str or not end_str or not exclude_types:
+                continue
+
+            start_date = pd.to_datetime(start_str, utc=True)
+            end_date = pd.to_datetime(end_str, utc=True)
+
+            # Time filter
+            time_mask = (df['Timestamp'] >= start_date) & (df['Timestamp'] <= end_date)
+            
+            if not time_mask.any():
+                continue
+
+            # Type filter
+            if "All Broadcasts" in exclude_types:
+                drop_mask |= time_mask
+                logger.info(f"  - Dropping all broadcasts between {start_str} and {end_str} ({time_mask.sum()} rows found in range)")
+            elif 'Broadcast_Type' in df.columns:
+                type_mask = df['Broadcast_Type'].isin(exclude_types)
+                combined_mask = time_mask & type_mask
+                drop_mask |= combined_mask
+                if combined_mask.any():
+                    logger.info(f"  - Dropping specific types {exclude_types} between {start_str} and {end_str} ({combined_mask.sum()} rows)")
+                    
+        except Exception as e:
+            logger.warning(f"Failed to apply exclusion rule {rule}: {e}")
+
+    if drop_mask.any():
+        df_filtered = df[~drop_mask].copy()
+        logger.success(f"--> Excluded {initial_count - len(df_filtered)} records based on exclusion settings.")
+        return df_filtered
+    
+    return df
+
 # --- Report Generators ---
 
 def generate_leaderboard_reports(df_chat, df_broadcasts, config, periods):
@@ -741,6 +794,9 @@ def main():
         df_broadcasts['Timestamp'] = pd.to_datetime(df_broadcasts['Timestamp'], errors='coerce', utc=True)
         df_chat['Timestamp'] = pd.to_datetime(df_chat['Timestamp'], errors='coerce', utc=True)
         
+        # --- Apply Exclusion Filters ---
+        df_broadcasts = apply_exclusion_filters(df_broadcasts, config)
+
         # --- Apply Username Mapping ---														   
         mapping_rules = config.get('username_mapping', {}).get('rules', [])
         if mapping_rules:
