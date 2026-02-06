@@ -539,12 +539,14 @@ def generate_personal_bests_report(df_broadcasts, config):
     all_pbs = []
     task_to_group_map = {}
     all_historical_tasks = set()
+    canonical_task_names = {}
     
     for group in hist_data.get('groups', []):
         group_title = group.get('title')
         for record in group.get('records', []):
             task_name = record.get('name')
             if task_name:
+                canonical_task_names[task_name.lower()] = task_name
                 all_historical_tasks.add(task_name)
                 task_to_group_map[task_name] = group_title
                 holders = record.get('holder', [])
@@ -552,13 +554,22 @@ def generate_personal_bests_report(df_broadcasts, config):
                 if isinstance(holders, str):
                     holders = [holders] if holders else []
                 
+                # Check for manual date override
+                manual_date = record.get('date')
+                timestamp = pd.Timestamp.min.replace(tzinfo=timezone.utc)
+                if manual_date:
+                    timestamp = pd.to_datetime(manual_date, errors='coerce', utc=True)
+                    if pd.isna(timestamp):
+                        timestamp = pd.Timestamp.min.replace(tzinfo=timezone.utc)
+
                 all_pbs.append({
                     'Task_Name': task_name,
                     'PB_Time': record.get('time'),
                     'Username': holders[0] if holders else "", 
                     'All_Holders': holders,
-                    'Timestamp': pd.Timestamp.min.replace(tzinfo=timezone.utc),
-                    'is_historical': True
+                    'Timestamp': timestamp,
+                    'is_historical': True,
+                    'manual_date': manual_date
                 })
 
     source_type = pb_config.get('broadcast_type')
@@ -573,6 +584,16 @@ def generate_personal_bests_report(df_broadcasts, config):
         return pd.DataFrame()
 
     df_all_pbs = pd.DataFrame(all_pbs)
+
+    # Normalize Task Names to handle capitalization changes (e.g. "shellbane" vs "Shellbane")
+    if 'Task_Name' in df_all_pbs.columns:
+        for task in df_all_pbs['Task_Name'].dropna().unique():
+            if isinstance(task, str) and task.lower() not in canonical_task_names:
+                canonical_task_names[task.lower()] = task
+        
+        df_all_pbs['Task_Name'] = df_all_pbs['Task_Name'].apply(
+            lambda x: canonical_task_names.get(x.lower(), x) if isinstance(x, str) else x
+        )
     
 	    # Apply blacklist rules before any other processing																					 
     if blacklist_rules:
@@ -677,6 +698,8 @@ def generate_personal_bests_report(df_broadcasts, config):
         record_date = None
         if not definitive_record['is_historical']:
             record_date = definitive_record['Timestamp'].strftime('%Y-%m-%d')
+        elif pd.notna(definitive_record.get('manual_date')) and definitive_record.get('manual_date'):
+            record_date = str(definitive_record.get('manual_date'))
 
         final_records[task_name] = {
             'Task': task_name,
