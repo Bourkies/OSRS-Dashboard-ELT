@@ -49,19 +49,21 @@ def save_state(path: Path, state: dict):
 
 def create_embed_for_group(group, has_records=True, timestamp=None):
     """Creates a discord.Embed object for a given group of records."""
+    group_title = group.get('title', 'Personal Bests')
     embed = discord.Embed(
-        title=group.get('title', 'Personal Bests'),
         color=discord.Color.blue() if has_records else discord.Color.dark_grey()
     )
 
+    header = f"# **{group_title}**"
+
     if not has_records:
-        embed.description = "No records to display in this category."
+        embed.description = f"{header}\nNo records to display in this category."
         if timestamp:
             embed.timestamp = timestamp
             embed.set_footer(text="Updated")
         return embed
     
-    description_parts = []
+    description_parts = [header]
     for record in group.get('records', []):
         record_name = record.get('name', 'Unnamed Record')
         time = record.get('time', 'N/A')
@@ -236,11 +238,17 @@ class PBPosterClient(discord.Client):
                         
                         if recent_lines:
                             separator = "\n\n" + "─" * 20 + "\n\n"
-                            header = "**🏆 Newest Clan Records**\n"
+                            header = "## **🏆 Newest Clan Records**\n"
                             recent_section = header + "\n".join(recent_lines)
                             
-                            current_desc = embed.description if embed.description != "No records to display in this category." else ""
-                            new_desc = current_desc + (separator if current_desc else "") + recent_section
+                            # If the misc section is empty, keep a placeholder so the "Newest" section 
+                            # is clearly separated from the "Miscellaneous" title.
+                            if "No records to display in this category." in embed.description:
+                                current_desc = f"## **{group_title}**\n*No miscellaneous records to display.*"
+                            else:
+                                current_desc = embed.description
+                            
+                            new_desc = current_desc + separator + recent_section
                             
                             if len(new_desc) > 4096:
                                 new_desc = new_desc[:4093] + "..."
